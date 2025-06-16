@@ -275,7 +275,7 @@ MEMORY_MAX_FILE_SIZE_MB=5
 
 ### Getting Help
 
-1. Check the [Issues](https://github.com/yourusername/personal-ai-assistant/issues) page
+1. Check the [Issues](https://github.com/jason-c-dev/personal-ai-assistant/issues) page
 2. Review memory files in `~/assistant_memory/` for debugging
 3. Enable debug logging with `DEBUG=true` in `.env`
 4. Check the assistant's reasoning in memory files' YAML frontmatter
@@ -346,4 +346,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ for meaningful AI relationships**
 
-*Questions? Feedback? [Open an issue](https://github.com/yourusername/personal-ai-assistant/issues) or start a discussion!* 
+*Questions? Feedback? [Open an issue](https://github.com/jason-c-dev/personal-ai-assistant/issues) or start a discussion!* 
