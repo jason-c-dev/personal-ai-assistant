@@ -1,0 +1,80 @@
+{
+  "mcp": {
+    "enabled": true,
+    "global_timeout": 30,
+    "retry_attempts": 3,
+    "servers": [
+      {
+        "name": "memory",
+        "transport": "stdio",
+        "command": "python",
+        "args": [
+          "src/mcp_servers/memory_server.py",
+          "memory"
+        ],
+        "timeout": 30,
+        "enabled": true
+      },
+      {
+        "name": "filesystem",
+        "transport": "stdio", 
+        "command": "python",
+        "args": [
+          "src/mcp_servers/filesystem_server.py",
+          "memory"
+        ],
+        "timeout": 30,
+        "enabled": true
+      },
+      {
+        "name": "external_api_example",
+        "transport": "http",
+        "url": "https://api.example.com/mcp",
+        "timeout": 45,
+        "enabled": false,
+        "_comment": "Example HTTP transport server (disabled by default)"
+      },
+      {
+        "name": "websocket_example", 
+        "transport": "sse",
+        "url": "https://realtime.example.com/mcp/sse",
+        "timeout": 60,
+        "enabled": false,
+        "_comment": "Example SSE transport server (disabled by default)"
+      },
+      {
+        "name": "development_server",
+        "transport": "stdio",
+        "command": "python",
+        "args": [
+          "path/to/custom_mcp_server.py",
+          "--config", "dev_config.json"
+        ],
+        "env": {
+          "DEBUG": "1",
+          "LOG_LEVEL": "DEBUG"
+        },
+        "timeout": 15,
+        "enabled": false,
+        "_comment": "Example development server with custom environment"
+      }
+    ]
+  },
+  "agent_name": "Multi-Server AI Assistant",
+  "enable_builtin_tools": true,
+  "memory": {
+    "enabled": true,
+    "memory_base_path": "memory",
+    "max_context_memories": 15,
+    "importance_threshold": 0.4,
+    "enable_semantic_search": true
+  },
+  "model": {
+    "provider": "bedrock",
+    "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+    "temperature": 0.7,
+    "max_tokens": 4000,
+    "streaming": true,
+    "region_name": "us-west-2"
+  }
+} 

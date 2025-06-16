@@ -11,6 +11,7 @@ Welcome to the Personal AI Assistant documentation! This AI assistant provides *
 
 ### Advanced Topics  
 - **[Development Guide](development.md)** - Contributing, architecture, and code standards
+- **[MCP Integration Guide](mcp-integration.md)** - Model Context Protocol servers and custom tools
 
 ## 🚀 Quick Start
 
@@ -62,6 +63,7 @@ docs/
 ├── README.md              # This overview (you are here)
 ├── configuration.md       # Complete setup guide
 ├── memory-system.md       # Memory organization & control
+├── mcp-integration.md     # MCP servers and custom tools
 └── development.md         # Architecture & contributing
 ```
 

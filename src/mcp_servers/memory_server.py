@@ -56,7 +56,14 @@ def search_memories(query: str, limit: int = 10) -> Dict[str, Any]:
         Dictionary containing search results and metadata
     """
     if not memory_manager:
-        raise RuntimeError("Memory server not initialized")
+        logger.error("Memory server not initialized")
+        return {
+            "success": False,
+            "error": "Memory server not initialized",
+            "query": query,
+            "results_count": 0,
+            "results": []
+        }
     
     try:
         results = memory_manager.search_memories(query, limit=limit)
@@ -100,7 +107,14 @@ def get_recent_context(hours: int = 24, limit: int = 20) -> Dict[str, Any]:
         Dictionary containing recent memories and metadata
     """
     if not memory_manager:
-        raise RuntimeError("Memory server not initialized")
+        logger.error("Memory server not initialized")
+        return {
+            "success": False,
+            "error": "Memory server not initialized",
+            "hours_back": hours,
+            "memories_count": 0,
+            "memories": []
+        }
     
     try:
         # Convert hours to days for the method

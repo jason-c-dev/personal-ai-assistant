@@ -173,16 +173,140 @@ RETRY_DELAY_SECONDS=1
 ```
 
 #### MCP Server Configuration
-```bash
-# Enable/disable MCP features
-MCP_ENABLED=true
-MCP_FILESYSTEM_ENABLED=true
-MCP_MEMORY_SEARCH_ENABLED=true
 
-# MCP server settings
-MCP_SERVER_PORT=8000
-MCP_LOG_LEVEL=INFO
+#### Default Servers (Automatic)
+
+The assistant automatically configures essential servers:
+
+```bash
+# These are configured automatically - no setup required!
+MCP_ENABLED=true                    # Enable MCP integration
+MCP_MEMORY_SERVER_ENABLED=true     # Memory search and management
+MCP_FILESYSTEM_SERVER_ENABLED=true # File operations
 ```
+
+#### Adding Additional Servers
+
+Create a custom configuration file to add more servers:
+
+```json
+{
+  "mcp": {
+    "enabled": true,
+    "global_timeout": 30,
+    "retry_attempts": 3,
+    "servers": [
+      {
+        "name": "memory",
+        "transport": "stdio",
+        "command": "python",
+        "args": ["src/mcp_servers/memory_server.py", "memory"],
+        "timeout": 30,
+        "enabled": true
+      },
+      {
+        "name": "filesystem",
+        "transport": "stdio",
+        "command": "python", 
+        "args": ["src/mcp_servers/filesystem_server.py", "memory"],
+        "timeout": 30,
+        "enabled": true
+      },
+      {
+        "name": "external_service",
+        "transport": "http",
+        "url": "https://api.example.com/mcp",
+        "timeout": 45,
+        "enabled": true
+      }
+    ]
+  }
+}
+```
+
+#### Transport Types
+
+**stdio Transport (Default)**
+- Local Python servers
+- Best for memory and filesystem operations
+- Automatic process management
+
+**HTTP Transport**
+- Remote API servers
+- RESTful MCP endpoints
+- Good for external services
+
+**SSE Transport** 
+- Server-Sent Events
+- Real-time data streams
+- WebSocket-like functionality
+
+#### Server Management
+
+```bash
+# Environment variables for server control
+MCP_GLOBAL_TIMEOUT=30              # Global timeout for all servers
+MCP_RETRY_ATTEMPTS=3               # Retry failed connections
+MCP_ENABLE_HEALTH_MONITORING=true  # Monitor server health
+```
+
+#### Multiple Server Examples
+
+**Development Environment:**
+```json
+{
+  "mcp": {
+    "servers": [
+      {
+        "name": "memory",
+        "transport": "stdio",
+        "command": "python",
+        "args": ["src/mcp_servers/memory_server.py", "dev_memory"],
+        "env": {"DEBUG": "1"},
+        "enabled": true
+      },
+      {
+        "name": "test_api",
+        "transport": "http", 
+        "url": "http://localhost:8080/mcp",
+        "enabled": false
+      }
+    ]
+  }
+}
+```
+
+**Production Environment:**
+```json
+{
+  "mcp": {
+    "servers": [
+      {
+        "name": "memory",
+        "transport": "stdio",
+        "command": "python",
+        "args": ["src/mcp_servers/memory_server.py", "memory"],
+        "enabled": true
+      },
+      {
+        "name": "filesystem",
+        "transport": "stdio",
+        "command": "python",
+        "args": ["src/mcp_servers/filesystem_server.py", "memory"],
+        "enabled": true
+      },
+      {
+        "name": "analytics_api",
+        "transport": "https",
+        "url": "https://analytics.company.com/mcp",
+        "enabled": true
+      }
+    ]
+  }
+}
+```
+
+**See [MCP Integration Guide](mcp-integration.md) for complete documentation.**
 
 ### Logging & Debugging
 

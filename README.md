@@ -169,53 +169,82 @@ Your memories are stored in `~/.assistant_memory/` with this structure:
 
 ## 🛠️ Development
 
-> **🔄 Upcoming in Task 7.0**: We're refactoring to use Strands agent SDK's native MCP integration instead of our custom implementation. This will simplify the codebase and provide better compatibility with the broader MCP ecosystem. See `tasks/task-7-strands-mcp-refactor-breakdown.md` for details.
+### Architecture
+
+**🎯 Native Strands MCP Integration**: Uses Strands agent SDK's native MCP (Model Context Protocol) integration for robust, production-ready tool access:
+
+- **Memory Server**: Provides semantic search and memory management through MCP
+- **Filesystem Server**: Handles file operations through standardized MCP protocol  
+- **Multiple Server Support**: Can connect to additional MCP servers simultaneously
+- **Error Isolation**: Individual server failures don't break the entire system
+- **Tool Namespacing**: Prevents conflicts between servers with similar tools
 
 ### Project Structure
 
 ```
 personal-ai-assistant/
 ├── src/
-│   ├── agent/              # Strands agent implementation
+│   ├── agent/              # Strands agent with native MCP integration
+│   │   ├── core_agent.py   # Main agent using Strands framework
+│   │   ├── agent_config.py # Configuration with MCP server management
+│   │   └── cli.py          # Command-line interface
 │   ├── memory/             # Memory management system
-│   ├── mcp_servers/        # MCP server integrations
-│   └── main.py            # CLI entry point
+│   │   ├── memory_manager.py     # Core memory operations
+│   │   ├── memory_condensation.py  # AI-powered summarization
+│   │   ├── memory_prioritization.py # Intelligent prioritization
+│   │   └── memory_*.py     # Specialized memory components
+│   ├── mcp_servers/        # MCP server implementations
+│   │   ├── memory_server.py      # Memory search and management
+│   │   └── filesystem_server.py  # File operations
+│   └── main.py             # CLI entry point
 ├── config/
-│   ├── system_prompts.json # Assistant personality configuration
-│   └── model_config.json   # AI model settings
-├── tests/
-│   ├── integration/        # Integration tests
-│   └── unit/              # Unit tests
-├── requirements.txt        # Python dependencies
-├── .env-example           # Environment configuration template
-└── README.md             # This file
+│   ├── system_prompts.json       # Assistant personality
+│   ├── model_config.json         # AI model settings
+│   └── mcp_multi_server_example.json  # Example multi-server config
+├── docs/                          # Complete documentation
+├── tests/                         # Comprehensive test suite
+├── requirements*.txt              # Python dependencies
+└── .env-example                   # Environment configuration
 ```
 
-### Running Tests
+### MCP Server Configuration
 
-```bash
-# Run all tests
-python -m pytest
+The assistant automatically configures essential MCP servers, but you can add more:
 
-# Run with coverage
-python -m pytest --cov=src
-
-# Run specific test file
-python -m pytest tests/unit/test_memory_manager.py
+```json
+{
+  "mcp": {
+    "enabled": true,
+    "servers": [
+      {
+        "name": "memory",
+        "transport": "stdio",
+        "command": "python",
+        "args": ["src/mcp_servers/memory_server.py", "memory"],
+        "enabled": true
+      },
+      {
+        "name": "filesystem", 
+        "transport": "stdio",
+        "command": "python",
+        "args": ["src/mcp_servers/filesystem_server.py", "memory"],
+        "enabled": true
+      },
+      {
+        "name": "external_api",
+        "transport": "http",
+        "url": "https://api.example.com/mcp",
+        "enabled": false
+      }
+    ]
+  }
+}
 ```
 
-### Code Quality
-
-```bash
-# Format code
-black src/ tests/
-
-# Lint code
-flake8 src/ tests/
-
-# Type checking
-mypy src/
-```
+**Transport Types Supported:**
+- **stdio**: Local Python servers (default for memory/filesystem)
+- **http**: Remote HTTP APIs 
+- **sse**: Server-Sent Events for real-time services
 
 ## 🔧 Advanced Configuration
 

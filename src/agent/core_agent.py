@@ -13,13 +13,13 @@ from pathlib import Path
 
 from strands import Agent, tool
 from strands.models import BedrockModel
+from strands.tools.mcp import MCPClient
 from strands_tools import calculator, current_time
+from mcp.client.stdio import stdio_client, StdioServerParameters
 
 from ..memory.memory_manager import MemoryManager, MemoryEntry
 from ..memory.file_operations import MemoryFileOperations
-from .agent_config import AgentConfig
-from .mcp_client import MCPClient
-from .strands_mcp_tools import StrandsMCPTools
+from .agent_config import AgentConfig, MCPServerConfig
 
 
 logger = logging.getLogger(__name__)
@@ -49,14 +49,14 @@ class SessionContext:
 
 class PersonalAssistantAgent:
     """
-    Personal AI Assistant with persistent memory and MCP integration.
+    Personal AI Assistant with persistent memory and native Strands MCP integration.
     
     This agent provides:
     - Persistent memory across conversations
-    - File system access through MCP servers
+    - File system access through native Strands MCP servers
     - Memory search and retrieval capabilities
     - Personalized responses based on interaction history
-    - Integration with external tools via MCP
+    - Integration with external tools via native MCP
     """
     
     def __init__(self, config: Optional[AgentConfig] = None):
@@ -69,8 +69,9 @@ class PersonalAssistantAgent:
         self.config = config or AgentConfig()
         self.memory_manager: Optional[MemoryManager] = None
         self.file_ops: Optional[MemoryFileOperations] = None
-        self.mcp_client: Optional[MCPClient] = None
-        self.strands_mcp_tools: Optional[StrandsMCPTools] = None
+        self.mcp_clients: List[MCPClient] = []
+        self.mcp_server_names: List[str] = []
+        self.mcp_tools: List[Any] = []
         self.agent: Optional[Agent] = None
         self.conversation_history: List[Dict[str, Any]] = []
         self.session_context: SessionContext = SessionContext()
@@ -79,7 +80,7 @@ class PersonalAssistantAgent:
             'memory_system': False,
             'memory_loaded': False,
             'context_prepared': False,
-            'mcp_client': False,
+            'mcp_clients': False,
             'strands_agent': False,
             'validation_complete': False
         }
@@ -121,14 +122,14 @@ class PersonalAssistantAgent:
                     logger.error("Memory loading and context preparation failed")
                     return False
             
-            # Step 3: Initialize MCP client for server communication
+            # Step 3: Initialize native Strands MCP clients
             if self.config.mcp.enabled:
-                success = await self._initialize_mcp_client()
-                self.initialization_steps['mcp_client'] = success
+                success = await self._initialize_mcp_clients()
+                self.initialization_steps['mcp_clients'] = success
                 if not success:
-                    logger.warning("MCP client initialization failed - continuing without MCP tools")
+                    logger.warning("MCP clients initialization failed - continuing without MCP tools")
             
-            # Step 4: Initialize the Strands agent
+            # Step 4: Initialize the Strands agent with native MCP integration
             success = await self._initialize_strands_agent()
             self.initialization_steps['strands_agent'] = success
             if not success:
@@ -201,7 +202,7 @@ class PersonalAssistantAgent:
             return True
             
         except Exception as e:
-            logger.error(f"Memory loading and context preparation failed: {e}")
+            logger.error(f"Memory loading failed: {e}")
             return False
     
     async def _load_core_memories(self) -> None:
@@ -278,55 +279,205 @@ class PersonalAssistantAgent:
         
         logger.info(f"Memory stats: {self.session_context.memory_stats.get('total_memories', 0)} total memories")
     
-    async def _initialize_mcp_client(self) -> bool:
-        """Initialize MCP client with stdio transport."""
+    async def _initialize_mcp_clients(self) -> bool:
+        """Initialize MCP clients for enabled servers with enhanced error isolation."""
+        if not self.config.mcp.enabled:
+            logger.info("MCP integration disabled")
+            return True
+        
         try:
-            logger.info("Initializing MCP client...")
+            logger.info("Initializing MCP clients with enhanced multi-server support...")
             
-            memory_path = Path(self.config.memory.memory_base_path)
-            self.mcp_client = MCPClient(str(memory_path))
-            
-            success = await self.mcp_client.initialize()
-            if not success:
-                logger.warning("MCP client initialization failed - continuing without MCP tools")
-                return False
-            else:
-                # Create Strands-compatible tool wrappers
-                self.strands_mcp_tools = StrandsMCPTools(self.mcp_client)
-                logger.info("MCP client initialized successfully")
+            enabled_servers = self.config.mcp.get_enabled_servers()
+            if not enabled_servers:
+                logger.warning("No enabled MCP servers found in configuration")
                 return True
+            
+            # Track successful and failed server connections
+            successful_clients = []
+            failed_servers = []
+            
+            for server in enabled_servers:
+                try:
+                    client = await self._create_mcp_client(server)
+                    if client:
+                        successful_clients.append((server.name, client))
+                        logger.info(f"✅ MCP client created for {server.name} ({server.transport})")
+                    else:
+                        failed_servers.append(server.name)
+                        logger.warning(f"❌ Failed to create MCP client for {server.name}")
+                except Exception as e:
+                    failed_servers.append(server.name)
+                    logger.error(f"❌ Error creating MCP client for {server.name}: {e}")
+                    # Continue with other servers rather than failing completely
+                    continue
+            
+            # Store successful clients with server names for tool namespacing
+            self.mcp_clients = [client for _, client in successful_clients]
+            self.mcp_server_names = [name for name, _ in successful_clients]
+            
+            # Report results
+            if successful_clients:
+                logger.info(f"✅ Successfully initialized {len(successful_clients)} MCP clients: {[name for name, _ in successful_clients]}")
+            else:
+                logger.warning("No MCP clients were successfully created")
+            
+            if failed_servers:
+                logger.warning(f"❌ Failed to initialize MCP clients for: {failed_servers}")
                 
+            # Return True even if some servers failed (error isolation)
+            return len(successful_clients) > 0 or len(enabled_servers) == 0
+            
         except Exception as e:
-            logger.error(f"MCP client initialization failed: {e}")
+            logger.error(f"MCP clients initialization failed: {e}")
+            # Initialize empty lists to prevent errors
+            self.mcp_clients = []
+            self.mcp_server_names = []
             return False
     
-    async def _initialize_strands_agent(self) -> bool:
-        """Initialize the Strands agent with model and tools."""
+    async def _create_mcp_client(self, server: MCPServerConfig) -> Optional[MCPClient]:
+        """Create a single MCP client for the specified server configuration with support for all transport types."""
         try:
-            logger.info("Initializing Strands agent...")
+            logger.debug(f"Creating MCP client for {server.name} using {server.transport} transport")
+            
+            if server.transport == "stdio":
+                # Create stdio client
+                server_params = StdioServerParameters(
+                    command=server.command,
+                    args=server.args,
+                    env=server.env
+                )
+                
+                client = MCPClient(
+                    lambda: stdio_client(server_params)
+                )
+                
+                logger.debug(f"Created stdio MCP client for {server.name}")
+                return client
+                
+            elif server.transport == "http":
+                # HTTP transport implementation
+                try:
+                    from mcp.client.sse import sse_client
+                    from mcp.client.session import ClientSession
+                    import httpx
+                    
+                    # Create HTTP client session
+                    async def create_http_session():
+                        async with httpx.AsyncClient() as http_client:
+                            # Create SSE connection for HTTP transport
+                            read, write = await sse_client(server.url)
+                            return ClientSession(read, write)
+                    
+                    client = MCPClient(create_http_session)
+                    logger.debug(f"Created HTTP MCP client for {server.name} at {server.url}")
+                    return client
+                    
+                except ImportError as e:
+                    logger.error(f"HTTP transport dependencies not available for {server.name}: {e}")
+                    logger.info("Install with: pip install mcp[sse] httpx")
+                    return None
+                except Exception as e:
+                    logger.error(f"Error creating HTTP client for {server.name}: {e}")
+                    return None
+                
+            elif server.transport == "sse":
+                # SSE transport implementation
+                try:
+                    from mcp.client.sse import sse_client
+                    
+                    client = MCPClient(
+                        lambda: sse_client(server.url)
+                    )
+                    
+                    logger.debug(f"Created SSE MCP client for {server.name} at {server.url}")
+                    return client
+                    
+                except ImportError as e:
+                    logger.error(f"SSE transport dependencies not available for {server.name}: {e}")
+                    logger.info("Install with: pip install mcp[sse]")
+                    return None
+                except Exception as e:
+                    logger.error(f"Error creating SSE client for {server.name}: {e}")
+                    return None
+                
+            else:
+                logger.error(f"Unsupported transport type: {server.transport} for {server.name}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error creating MCP client for {server.name}: {e}")
+            return None
+    
+    async def _initialize_strands_agent(self) -> bool:
+        """Initialize the Strands agent with model and tools using native MCP context managers."""
+        try:
+            logger.info("Initializing Strands agent with native MCP integration...")
             
             # Configure model
             model = self._create_model()
             
-            # Collect all tools
-            tools = await self._collect_tools()
-            
             # Create enhanced system prompt with context
             enhanced_system_prompt = self._create_enhanced_system_prompt()
             
-            # Create the Strands agent
-            self.agent = Agent(
-                model=model,
-                tools=tools,
-                system_prompt=enhanced_system_prompt
-            )
+            # Initialize agent within MCP context managers for proper session management
+            if self.config.mcp.enabled and self.mcp_clients:
+                # Use context manager pattern as recommended by Strands
+                async with self._get_mcp_context():
+                    tools = await self._collect_tools()
+                    
+                    # Create the Strands agent within MCP context
+                    self.agent = Agent(
+                        model=model,
+                        tools=tools,
+                        system_prompt=enhanced_system_prompt
+                    )
+                    
+                    logger.info(f"Strands agent initialized with {len(tools)} tools (including MCP)")
+            else:
+                # No MCP - initialize without MCP tools
+                tools = await self._collect_tools_without_mcp()
+                
+                self.agent = Agent(
+                    model=model,
+                    tools=tools,
+                    system_prompt=enhanced_system_prompt
+                )
+                
+                logger.info(f"Strands agent initialized with {len(tools)} tools (no MCP)")
             
-            logger.info(f"Strands agent initialized with {len(tools)} tools")
             return True
             
         except Exception as e:
             logger.error(f"Strands agent initialization failed: {e}")
             return False
+    
+    async def _get_mcp_context(self):
+        """Get async context manager for all MCP clients."""
+        from contextlib import AsyncExitStack
+        
+        stack = AsyncExitStack()
+        try:
+            # Enter all MCP client contexts
+            for client in self.mcp_clients:
+                await stack.enter_async_context(client)
+            yield stack
+        finally:
+            await stack.aclose()
+    
+    async def _collect_tools_without_mcp(self) -> List[Any]:
+        """Collect tools excluding MCP tools."""
+        tools = []
+        
+        # Add built-in Strands tools
+        if self.config.enable_builtin_tools:
+            tools.extend([calculator, current_time])
+        
+        # Add memory-related custom tools
+        if self.memory_manager:
+            tools.extend(self._create_memory_tools())
+        
+        return tools
     
     def _create_enhanced_system_prompt(self) -> str:
         """Create system prompt enhanced with session context."""
@@ -364,12 +515,15 @@ You have access to the user's profile, recent conversations, and preferences.
                     logger.warning(f"Memory system validation issues: {validation_results}")
                     # Don't fail initialization for minor issues
             
-            # Validate MCP client
-            if self.config.mcp.enabled and self.mcp_client:
-                # Test MCP connection
-                status = await self.mcp_client.get_status()
-                if not status.get('connected', False):
-                    logger.warning("MCP client not properly connected")
+            # Validate MCP clients
+            if self.config.mcp.enabled and self.mcp_clients:
+                logger.info(f"Validating {len(self.mcp_clients)} MCP clients")
+                # Basic validation - just check that clients were created
+                for i, mcp_client in enumerate(self.mcp_clients):
+                    if mcp_client is None:
+                        logger.warning(f"MCP client {i} is None")
+                    else:
+                        logger.debug(f"MCP client {i} is initialized")
             
             # Validate Strands agent
             if not self.agent:
@@ -399,7 +553,7 @@ You have access to the user's profile, recent conversations, and preferences.
         )
     
     async def _collect_tools(self) -> List[Any]:
-        """Collect all available tools for the agent."""
+        """Collect all available tools for the agent using native Strands MCP integration."""
         tools = []
         
         # Add built-in Strands tools
@@ -410,13 +564,53 @@ You have access to the user's profile, recent conversations, and preferences.
         if self.memory_manager:
             tools.extend(self._create_memory_tools())
         
-        # Add Strands-compatible MCP tools
-        if self.strands_mcp_tools:
-            strands_tools = self.strands_mcp_tools.get_tools()
-            tools.extend(strands_tools)
-            logger.info(f"Added {len(strands_tools)} Strands MCP tools")
+        # Add native MCP tools using context managers
+        if self.config.mcp.enabled and self.mcp_clients:
+            mcp_tools = await self._discover_mcp_tools()
+            tools.extend(mcp_tools)
+            logger.info(f"Added {len(mcp_tools)} native MCP tools")
         
         return tools
+    
+    async def _discover_mcp_tools(self) -> List[Any]:
+        """Discover tools from MCP servers with namespacing for conflict resolution."""
+        all_tools = []
+        
+        for i, client in enumerate(self.mcp_clients):
+            server_name = self.mcp_server_names[i] if i < len(self.mcp_server_names) else f"server_{i}"
+            
+            try:
+                # Use context manager for proper session management
+                async with client as session:
+                    # Discover tools using native Strands method
+                    tools = await session.list_tools()
+                    
+                    # Add namespace prefix to tool names to avoid conflicts
+                    namespaced_tools = []
+                    for tool in tools:
+                        if hasattr(tool, 'name'):
+                            # Add server prefix to tool name for uniqueness
+                            original_name = tool.name
+                            tool.name = f"{server_name}_{original_name}"
+                            
+                            # Update description to include server source
+                            if hasattr(tool, 'description'):
+                                tool.description = f"[{server_name}] {tool.description}"
+                            
+                            logger.debug(f"Namespaced tool: {original_name} -> {tool.name}")
+                        
+                        namespaced_tools.append(tool)
+                    
+                    all_tools.extend(namespaced_tools)
+                    logger.info(f"✅ Discovered {len(tools)} tools from {server_name} server")
+                    
+            except Exception as e:
+                logger.error(f"❌ Error discovering tools from {server_name} server: {e}")
+                # Continue with other servers instead of failing completely
+                continue
+        
+        logger.info(f"Total MCP tools discovered: {len(all_tools)} from {len(self.mcp_clients)} servers")
+        return all_tools
     
     def _create_memory_tools(self) -> List[Any]:
         """Create custom tools for memory operations."""
@@ -594,49 +788,33 @@ You have access to the user's profile, recent conversations, and preferences.
             return f"I apologize, but I encountered an error processing your request: {str(e)}"
     
     async def _enhance_message_with_context(self, message: str, user_id: str) -> str:
-        """Enhance the user message with relevant context from memory via MCP."""
-        if not self.config.memory.enabled:
+        """Enhance the user message with relevant context from memory."""
+        if not self.config.memory.enabled or not self.memory_manager:
             return message
         
         try:
-            # Try MCP client first (preferred method)
-            if self.mcp_client:
-                mcp_tools = self.mcp_client.get_available_tools()
-                
-                if "search_memories_mcp" in mcp_tools:
-                    search_tool = mcp_tools["search_memories_mcp"]
-                    search_result = await search_tool(message, limit=3)
-                    
-                    if "No memories found" not in search_result and "Error" not in search_result:
-                        enhanced_message = f"""Previous relevant context:
-{search_result}
-
-Current message: {message}"""
-                        return enhanced_message
+            # Use direct memory manager search (native MCP tools will be available through the agent)
+            relevant_memories = self.memory_manager.search_memories(
+                message, 
+                limit=self.config.memory.max_context_memories
+            )
             
-            # Fallback to direct memory manager if MCP not available
-            if self.memory_manager:
-                relevant_memories = self.memory_manager.search_memories(
-                    message, 
-                    limit=self.config.memory.max_context_memories
-                )
+            if relevant_memories:
+                # Filter by importance threshold
+                important_memories = [
+                    mem for mem in relevant_memories 
+                    if mem.relevance_score >= self.config.memory.importance_threshold
+                ]
                 
-                if relevant_memories:
-                    # Filter by importance threshold
-                    important_memories = [
-                        mem for mem in relevant_memories 
-                        if mem.relevance_score >= self.config.memory.importance_threshold
-                    ]
+                if important_memories:
+                    # Build context
+                    context_parts = ["Previous relevant context:"]
+                    for memory in important_memories:
+                        context_parts.append(f"- {memory.content_snippet}")
                     
-                    if important_memories:
-                        # Build context
-                        context_parts = ["Previous relevant context:"]
-                        for memory in important_memories:
-                            context_parts.append(f"- {memory.content_snippet}")
-                        
-                        context_parts.append(f"\nCurrent message: {message}")
-                        
-                        return "\n".join(context_parts)
+                    context_parts.append(f"\nCurrent message: {message}")
+                    
+                    return "\n".join(context_parts)
             
             return message
             
@@ -645,22 +823,9 @@ Current message: {message}"""
             return message
     
     async def _store_interaction(self, user_input: str, assistant_response: str, user_id: str) -> None:
-        """Store the interaction in memory via MCP."""
+        """Store the interaction in memory."""
         try:
-            # Try MCP client first (preferred method)
-            if self.mcp_client:
-                mcp_tools = self.mcp_client.get_available_tools()
-                
-                if "update_memory_mcp" in mcp_tools:
-                    update_tool = mcp_tools["update_memory_mcp"]
-                    content = f"User: {user_input}\n\nAssistant: {assistant_response}"
-                    result = await update_tool(content, "conversation")
-                    
-                    if "successfully" in result:
-                        logger.debug("Interaction stored via MCP")
-                        return
-            
-            # Fallback to direct memory manager
+            # Use direct memory manager (native MCP tools are available through the agent)
             if self.memory_manager:
                 entry = MemoryEntry(
                     content=f"User: {user_input}\n\nAssistant: {assistant_response}",
@@ -669,7 +834,7 @@ Current message: {message}"""
                     metadata={"user_id": user_id}
                 )
                 self.memory_manager.create_interaction_memory(entry)
-                logger.debug("Interaction stored via direct memory manager")
+                logger.debug("Interaction stored in memory")
                 
         except Exception as e:
             logger.warning(f"Failed to store interaction in memory: {e}")
@@ -727,62 +892,132 @@ Current message: {message}"""
             yield f"I apologize, but I encountered an error: {str(e)}"
     
     async def get_agent_status(self) -> Dict[str, Any]:
-        """
-        Get comprehensive status information about the agent and session.
-        
-        Returns:
-            Dictionary containing agent status information
-        """
-        status = {
-            "agent_name": self.config.agent_name,
-            "agent_version": self.config.agent_version,
-            "initialized": self.is_initialized,
-            "memory_enabled": self.config.memory.enabled,
-            "mcp_enabled": self.config.mcp.enabled,
-            "conversation_turns": len(self.conversation_history)
-        }
-        
-        # Add session initialization details
-        status["initialization_steps"] = self.initialization_steps.copy()
-        status["session_context"] = {
-            "session_started": self.session_context.session_initialized_at.isoformat(),
-            "context_prepared": self.session_context.context_prepared,
-            "core_memories_loaded": len(self.session_context.core_memories),
-            "recent_interactions_loaded": len(self.session_context.recent_interactions),
-            "session_ready": self.session_context.is_ready(),
-            "context_summary_length": len(self.session_context.conversation_summary) if self.session_context.conversation_summary else 0
-        }
-        
-        # Add memory system status
-        if self.memory_manager:
-            try:
-                memory_stats = self.memory_manager.get_memory_statistics()
-                status["memory_stats"] = memory_stats
+        """Get comprehensive agent status including detailed MCP server information."""
+        try:
+            status = {
+                "agent_status": "operational" if self.is_initialized else "not_initialized",
+                "initialization_status": {
+                    "memory_system": self.memory_manager is not None,
+                    "mcp_clients": len(self.mcp_clients) > 0 if hasattr(self, 'mcp_clients') else False,
+                    "strands_agent": self.agent is not None,
+                    "session_context": self.session_context.is_ready()
+                },
+                "configuration": {
+                    "memory_enabled": self.config.memory.enabled,
+                    "mcp_enabled": self.config.mcp.enabled,
+                    "builtin_tools_enabled": self.config.enable_builtin_tools,
+                    "conversation_logging": self.config.enable_conversation_logging
+                },
+                "memory_system": {},
+                "mcp_system": {},
+                "conversation": {
+                    "history_length": len(self.conversation_history),
+                    "max_history": self.config.max_conversation_history
+                }
+            }
+            
+            # Enhanced memory system status
+            if self.memory_manager:
+                try:
+                    memory_stats = self.memory_manager.get_memory_statistics()
+                    status["memory_system"] = {
+                        "status": "operational",
+                        "base_path": str(self.config.memory.memory_base_path),
+                        "statistics": memory_stats
+                    }
+                except Exception as e:
+                    status["memory_system"] = {
+                        "status": "error",
+                        "error": str(e)
+                    }
+            else:
+                status["memory_system"] = {"status": "disabled"}
+            
+            # Enhanced MCP system status with multiple server support
+            if hasattr(self, 'mcp_clients') and self.mcp_clients:
+                mcp_status = {
+                    "status": "operational",
+                    "total_clients": len(self.mcp_clients),
+                    "configuration_status": self.config.mcp.get_server_health_status(),
+                    "active_servers": [],
+                    "server_tools": {}
+                }
                 
-                # Add session-specific memory stats
-                status["session_memory_stats"] = self.session_context.memory_stats
+                # Get server names (with fallback)
+                server_names = getattr(self, 'mcp_server_names', [f"server_{i}" for i in range(len(self.mcp_clients))])
                 
-            except Exception as e:
-                status["memory_error"] = str(e)
-        
-        # Add MCP status
-        if self.mcp_client:
-            try:
-                mcp_health = await self.mcp_client.health_check()
-                status["mcp_status"] = mcp_health
-            except Exception as e:
-                status["mcp_error"] = str(e)
-        
-        return status
+                # Test each MCP client connection
+                for i, client in enumerate(self.mcp_clients):
+                    server_name = server_names[i] if i < len(server_names) else f"server_{i}"
+                    server_status = {
+                        "name": server_name,
+                        "status": "unknown",
+                        "tools_count": 0,
+                        "error": None
+                    }
+                    
+                    try:
+                        # Test connection by attempting to list tools
+                        async with client as session:
+                            tools = await session.list_tools()
+                            server_status["status"] = "operational"
+                            server_status["tools_count"] = len(tools)
+                            
+                            # Store tool names for this server
+                            mcp_status["server_tools"][server_name] = [
+                                tool.name if hasattr(tool, 'name') else str(tool) 
+                                for tool in tools
+                            ]
+                            
+                    except Exception as e:
+                        server_status["status"] = "error"
+                        server_status["error"] = str(e)
+                    
+                    mcp_status["active_servers"].append(server_status)
+                
+                # Calculate overall MCP health
+                operational_servers = [s for s in mcp_status["active_servers"] if s["status"] == "operational"]
+                total_tools = sum(s["tools_count"] for s in operational_servers)
+                
+                mcp_status["health_summary"] = {
+                    "operational_servers": len(operational_servers),
+                    "total_servers": len(mcp_status["active_servers"]),
+                    "total_tools": total_tools,
+                    "health_percentage": (len(operational_servers) / len(mcp_status["active_servers"]) * 100) if mcp_status["active_servers"] else 0
+                }
+                
+                status["mcp_system"] = mcp_status
+                
+            elif self.config.mcp.enabled:
+                status["mcp_system"] = {
+                    "status": "configured_but_not_initialized",
+                    "configuration_status": self.config.mcp.get_server_health_status()
+                }
+            else:
+                status["mcp_system"] = {"status": "disabled"}
+            
+            return status
+            
+        except Exception as e:
+            logger.error(f"Error getting agent status: {e}")
+            return {
+                "agent_status": "error",
+                "error": str(e),
+                "initialization_status": {
+                    "memory_system": False,
+                    "mcp_clients": False,
+                    "strands_agent": False,
+                    "session_context": False
+                }
+            }
     
     async def shutdown(self) -> None:
         """Gracefully shutdown the agent and all its components."""
         logger.info("Shutting down Personal AI Assistant...")
         
         try:
-            # Shutdown MCP client
-            if self.mcp_client:
-                await self.mcp_client.shutdown()
+            # Clear MCP clients (native Strands clients handle cleanup automatically)
+            self.mcp_clients.clear()
             
             # Clear conversation history
             self.conversation_history.clear()
