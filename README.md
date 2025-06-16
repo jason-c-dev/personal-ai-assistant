@@ -33,7 +33,7 @@ pip install -r requirements-minimal.txt      # Fast: ~15MB, essentials only
 echo "ANTHROPIC_API_KEY=your_key_here" > .env
 
 # 4. Start chatting!
-python -m src.mainy
+python -m src.main
 ```
 
 **That's it!** The assistant will auto-configure everything else and create your memory system on first run.
