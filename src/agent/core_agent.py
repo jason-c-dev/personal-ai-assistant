@@ -410,7 +410,7 @@ class PersonalAssistantAgent:
             return None
     
     async def _initialize_strands_agent(self) -> bool:
-        """Initialize the Strands agent with model and tools using native MCP context managers."""
+        """Initialize the Strands agent with model and tools using native MCP integration."""
         try:
             logger.info("Initializing Strands agent with native MCP integration...")
             
@@ -420,30 +420,19 @@ class PersonalAssistantAgent:
             # Create enhanced system prompt with context
             enhanced_system_prompt = self._create_enhanced_system_prompt()
             
-            # Initialize agent within MCP context managers for proper session management
+            # Collect tools (MCP clients are already initialized and ready to use)
+            tools = await self._collect_tools()
+            
+            # Create the Strands agent
+            self.agent = Agent(
+                model=model,
+                tools=tools,
+                system_prompt=enhanced_system_prompt
+            )
+            
             if self.config.mcp.enabled and self.mcp_clients:
-                # Use context manager pattern as recommended by Strands
-                async with self._get_mcp_context():
-                    tools = await self._collect_tools()
-                    
-                    # Create the Strands agent within MCP context
-                    self.agent = Agent(
-                        model=model,
-                        tools=tools,
-                        system_prompt=enhanced_system_prompt
-                    )
-                    
-                    logger.info(f"Strands agent initialized with {len(tools)} tools (including MCP)")
+                logger.info(f"Strands agent initialized with {len(tools)} tools (including MCP)")
             else:
-                # No MCP - initialize without MCP tools
-                tools = await self._collect_tools_without_mcp()
-                
-                self.agent = Agent(
-                    model=model,
-                    tools=tools,
-                    system_prompt=enhanced_system_prompt
-                )
-                
                 logger.info(f"Strands agent initialized with {len(tools)} tools (no MCP)")
             
             return True
@@ -451,19 +440,6 @@ class PersonalAssistantAgent:
         except Exception as e:
             logger.error(f"Strands agent initialization failed: {e}")
             return False
-    
-    async def _get_mcp_context(self):
-        """Get async context manager for all MCP clients."""
-        from contextlib import AsyncExitStack
-        
-        stack = AsyncExitStack()
-        try:
-            # Enter all MCP client contexts
-            for client in self.mcp_clients:
-                await stack.enter_async_context(client)
-            yield stack
-        finally:
-            await stack.aclose()
     
     async def _collect_tools_without_mcp(self) -> List[Any]:
         """Collect tools excluding MCP tools."""
