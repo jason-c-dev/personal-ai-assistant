@@ -237,20 +237,19 @@ def create_backup(file_path: str) -> str:
         return f"Error creating backup: {str(e)}"
 
 
-# Standalone server runner
-if __name__ == "__main__":
+async def main():
+    """Main entry point for the filesystem server."""
     import sys
-    from src.utils.config import get_config
     
-    # Setup logging
-    logging.basicConfig(level=logging.INFO)
+    if len(sys.argv) != 2:
+        print("Usage: python filesystem_server.py <memory_base_path>", file=sys.stderr)
+        sys.exit(1)
     
-    # Get memory path from config
-    config = get_config()
-    memory_path = config.get('MEMORY_BASE_PATH', 'memory')
+    memory_base_path = sys.argv[1]
+    initialize_server(memory_base_path)
     
-    # Initialize server
-    initialize_server(memory_path)
-    
-    # Run the server
-    mcp.run() 
+    # Run the server with stdio transport
+    await mcp.run(transport="stdio")
+
+if __name__ == "__main__":
+    asyncio.run(main()) 

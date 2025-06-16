@@ -15,10 +15,11 @@ from strands import Agent, tool
 from strands.models import BedrockModel
 from strands_tools import calculator, current_time
 
-from memory.memory_manager import MemoryManager, MemoryEntry
-from memory.file_operations import MemoryFileOperations
-from agent.agent_config import AgentConfig
-from agent.mcp_integration import MCPIntegration
+from ..memory.memory_manager import MemoryManager, MemoryEntry
+from ..memory.file_operations import MemoryFileOperations
+from .agent_config import AgentConfig
+from .mcp_client import MCPClient
+from .strands_mcp_tools import StrandsMCPTools
 
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,8 @@ class PersonalAssistantAgent:
         self.config = config or AgentConfig()
         self.memory_manager: Optional[MemoryManager] = None
         self.file_ops: Optional[MemoryFileOperations] = None
-        self.mcp_integration: Optional[MCPIntegration] = None
+        self.mcp_client: Optional[MCPClient] = None
+        self.strands_mcp_tools: Optional[StrandsMCPTools] = None
         self.agent: Optional[Agent] = None
         self.conversation_history: List[Dict[str, Any]] = []
         self.is_initialized = False
@@ -75,9 +77,9 @@ class PersonalAssistantAgent:
             if self.config.memory.enabled:
                 await self._initialize_memory_system()
             
-            # Initialize MCP integration
+            # Initialize MCP client for server communication
             if self.config.mcp.enabled:
-                await self._initialize_mcp_integration()
+                await self._initialize_mcp_client()
             
             # Initialize the Strands agent
             await self._initialize_strands_agent()
@@ -106,17 +108,20 @@ class PersonalAssistantAgent:
         
         logger.info("Memory system initialized successfully")
     
-    async def _initialize_mcp_integration(self) -> None:
-        """Initialize MCP server connections."""
-        logger.info("Initializing MCP integration...")
+    async def _initialize_mcp_client(self) -> None:
+        """Initialize MCP client with stdio transport."""
+        logger.info("Initializing MCP client...")
         
-        self.mcp_integration = MCPIntegration(self.config.mcp)
-        success = await self.mcp_integration.initialize()
+        memory_path = Path(self.config.memory.memory_base_path)
+        self.mcp_client = MCPClient(str(memory_path))
         
+        success = await self.mcp_client.initialize()
         if not success:
-            logger.warning("MCP integration failed - continuing without MCP tools")
+            logger.warning("MCP client initialization failed - continuing without MCP tools")
         else:
-            logger.info("MCP integration initialized successfully")
+            # Create Strands-compatible tool wrappers
+            self.strands_mcp_tools = StrandsMCPTools(self.mcp_client)
+            logger.info("MCP client initialized successfully")
     
     async def _initialize_strands_agent(self) -> None:
         """Initialize the Strands agent with model and tools."""
@@ -159,11 +164,11 @@ class PersonalAssistantAgent:
         if self.memory_manager:
             tools.extend(self._create_memory_tools())
         
-        # Add MCP tools
-        if self.mcp_integration:
-            mcp_tools = self.mcp_integration.get_available_tools()
-            tools.extend(mcp_tools)
-            logger.info(f"Added {len(mcp_tools)} MCP tools")
+        # Add Strands-compatible MCP tools
+        if self.strands_mcp_tools:
+            strands_tools = self.strands_mcp_tools.get_tools()
+            tools.extend(strands_tools)
+            logger.info(f"Added {len(strands_tools)} Strands MCP tools")
         
         return tools
     
@@ -280,14 +285,34 @@ class PersonalAssistantAgent:
             # Process with Strands agent
             response = self.agent(enhanced_message)
             
-            # Extract text from response
-            if isinstance(response, dict):
-                # Handle dictionary response format
+            # Extract text from response - handle various formats
+            # Handle AgentResult objects from Strands first
+            if hasattr(response, '__class__') and 'AgentResult' in str(type(response)):
+                # AgentResult object - convert to string
+                response_text = str(response)
+            elif isinstance(response, list):
+                # Handle list response format (common with Strands)
+                if len(response) > 0:
+                    first_item = response[0]
+                    if isinstance(first_item, dict) and 'text' in first_item:
+                        response_text = first_item['text']
+                    else:
+                        response_text = str(first_item)
+                else:
+                    response_text = "No response generated"
+            elif isinstance(response, dict):
+                # Handle dictionary response format (Strands format)
                 if 'content' in response and isinstance(response['content'], list):
-                    if len(response['content']) > 0 and 'text' in response['content'][0]:
-                        response_text = response['content'][0]['text']
+                    if len(response['content']) > 0:
+                        content_item = response['content'][0]
+                        if isinstance(content_item, dict) and 'text' in content_item:
+                            response_text = content_item['text']
+                        else:
+                            response_text = str(content_item)
                     else:
                         response_text = str(response)
+                elif 'text' in response:
+                    response_text = response['text']
                 elif 'message' in response:
                     response_text = response['message']
                 else:
@@ -323,45 +348,73 @@ class PersonalAssistantAgent:
             return f"I apologize, but I encountered an error processing your request: {str(e)}"
     
     async def _enhance_message_with_context(self, message: str, user_id: str) -> str:
-        """Enhance the user message with relevant context from memory."""
-        if not self.memory_manager or not self.config.memory.enabled:
+        """Enhance the user message with relevant context from memory via MCP."""
+        if not self.config.memory.enabled:
             return message
         
         try:
-            # Search for relevant memories
-            relevant_memories = self.memory_manager.search_memories(
-                message, 
-                limit=self.config.memory.max_context_memories
-            )
+            # Try MCP client first (preferred method)
+            if self.mcp_client:
+                mcp_tools = self.mcp_client.get_available_tools()
+                
+                if "search_memories_mcp" in mcp_tools:
+                    search_tool = mcp_tools["search_memories_mcp"]
+                    search_result = await search_tool(message, limit=3)
+                    
+                    if "No memories found" not in search_result and "Error" not in search_result:
+                        enhanced_message = f"""Previous relevant context:
+{search_result}
+
+Current message: {message}"""
+                        return enhanced_message
             
-            if not relevant_memories:
-                return message
+            # Fallback to direct memory manager if MCP not available
+            if self.memory_manager:
+                relevant_memories = self.memory_manager.search_memories(
+                    message, 
+                    limit=self.config.memory.max_context_memories
+                )
+                
+                if relevant_memories:
+                    # Filter by importance threshold
+                    important_memories = [
+                        mem for mem in relevant_memories 
+                        if mem.relevance_score >= self.config.memory.importance_threshold
+                    ]
+                    
+                    if important_memories:
+                        # Build context
+                        context_parts = ["Previous relevant context:"]
+                        for memory in important_memories:
+                            context_parts.append(f"- {memory.content_snippet}")
+                        
+                        context_parts.append(f"\nCurrent message: {message}")
+                        
+                        return "\n".join(context_parts)
             
-            # Filter by importance threshold
-            important_memories = [
-                mem for mem in relevant_memories 
-                if mem.relevance_score >= self.config.memory.importance_threshold
-            ]
-            
-            if not important_memories:
-                return message
-            
-            # Build context
-            context_parts = ["Previous relevant context:"]
-            for memory in important_memories:
-                context_parts.append(f"- {memory.content_snippet}")
-            
-            context_parts.append(f"\nCurrent message: {message}")
-            
-            return "\n".join(context_parts)
+            return message
             
         except Exception as e:
             logger.warning(f"Failed to enhance message with context: {e}")
             return message
     
     async def _store_interaction(self, user_input: str, assistant_response: str, user_id: str) -> None:
-        """Store the interaction in memory."""
+        """Store the interaction in memory via MCP."""
         try:
+            # Try MCP client first (preferred method)
+            if self.mcp_client:
+                mcp_tools = self.mcp_client.get_available_tools()
+                
+                if "update_memory_mcp" in mcp_tools:
+                    update_tool = mcp_tools["update_memory_mcp"]
+                    content = f"User: {user_input}\n\nAssistant: {assistant_response}"
+                    result = await update_tool(content, "conversation")
+                    
+                    if "successfully" in result:
+                        logger.debug("Interaction stored via MCP")
+                        return
+            
+            # Fallback to direct memory manager
             if self.memory_manager:
                 entry = MemoryEntry(
                     content=f"User: {user_input}\n\nAssistant: {assistant_response}",
@@ -370,6 +423,8 @@ class PersonalAssistantAgent:
                     metadata={"user_id": user_id}
                 )
                 self.memory_manager.create_interaction_memory(entry)
+                logger.debug("Interaction stored via direct memory manager")
+                
         except Exception as e:
             logger.warning(f"Failed to store interaction in memory: {e}")
     
@@ -450,9 +505,9 @@ class PersonalAssistantAgent:
                 status["memory_error"] = str(e)
         
         # Add MCP status
-        if self.mcp_integration:
+        if self.mcp_client:
             try:
-                mcp_health = await self.mcp_integration.health_check()
+                mcp_health = await self.mcp_client.health_check()
                 status["mcp_status"] = mcp_health
             except Exception as e:
                 status["mcp_error"] = str(e)
@@ -464,9 +519,9 @@ class PersonalAssistantAgent:
         logger.info("Shutting down Personal AI Assistant...")
         
         try:
-            # Shutdown MCP integration
-            if self.mcp_integration:
-                await self.mcp_integration.shutdown()
+            # Shutdown MCP client
+            if self.mcp_client:
+                await self.mcp_client.shutdown()
             
             # Clear conversation history
             self.conversation_history.clear()

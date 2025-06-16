@@ -314,14 +314,14 @@ async def main():
     import sys
     
     if len(sys.argv) != 2:
-        print("Usage: python -m src.mcp_servers.memory_server <memory_base_path>")
+        print("Usage: python memory_server.py <memory_base_path>", file=sys.stderr)
         sys.exit(1)
     
     memory_base_path = sys.argv[1]
     initialize_memory_server(memory_base_path)
     
-    # Run the server
-    await mcp.run()
+    # Run the server with stdio transport
+    await mcp.run(transport="stdio")
 
 if __name__ == "__main__":
     asyncio.run(main()) 
