@@ -1,0 +1,40 @@
+# Minimal Dependencies for Personal AI Assistant
+# Core runtime requirements only - no development tools or optional features
+
+# ==================================================
+# CORE FRAMEWORK (Required)
+# ==================================================
+strands-agents>=0.1.0
+strands-agents-tools>=0.1.0
+mcp>=1.0.0
+
+# ==================================================
+# AI MODEL PROVIDERS (Choose one)
+# ==================================================
+# Anthropic Claude
+anthropic>=0.34.0
+
+# OpenAI Models  
+openai>=1.0.0
+
+# AWS Bedrock uses boto3 (included in strands-agents)
+
+# ==================================================
+# CORE RUNTIME DEPENDENCIES  
+# ==================================================
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+pyyaml>=6.0.1
+python-dateutil>=2.8.2
+click>=8.1.7
+rich>=13.7.0
+prompt-toolkit>=3.0.43
+aiofiles>=23.2.1
+
+# ==================================================
+# INSTALLATION NOTES
+# ==================================================
+# This installs only what's needed to run the assistant
+# Total download size: ~15-20MB (vs 200MB+ with full requirements)
+# Perfect for production deployments or users who just want to chat 

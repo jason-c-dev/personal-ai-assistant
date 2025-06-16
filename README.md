@@ -1,8 +1,8 @@
 # Personal AI Assistant with Persistent Memory
 
-> 🧠 An AI assistant that remembers who you are, building genuine relationships through persistent memory across conversations.
+> 🧠 **30-Second Setup** • An AI assistant that remembers who you are, builds relationships through persistent memory, and gets smarter with every conversation.
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
@@ -10,154 +10,153 @@
 
 Unlike traditional AI assistants that forget everything between conversations, this assistant:
 
-- **Remembers You**: Maintains persistent memory of your preferences, ongoing projects, and conversation history
-- **Learns Over Time**: Builds deeper understanding through every interaction
-- **Transparent Memory**: You can see, edit, and control exactly what it remembers about you
-- **Privacy-First**: All memory stored locally on your machine
-- **Relationship Building**: Conversations feel natural and continuous, like talking to someone who knows you
+- **🧠 Remembers Everything**: Maintains persistent memory of your preferences, projects, and conversation history
+- **📈 Learns Over Time**: Builds deeper understanding through every interaction
+- **👁️ Transparent Memory**: You can view, edit, and control exactly what it remembers
+- **🏠 Privacy-First**: All memory stored locally on your machine - nothing sent to external servers
+- **💬 Natural Conversations**: Feels like talking to someone who knows you and your context
+- **⚡ 30-Second Setup**: Just add your API key and start chatting
 
-## ✨ Key Features
+## 🚀 30-Second Quick Start
 
-### Core Capabilities
-- 🧠 **Persistent Memory System** - Never repeat yourself again
-- 🔄 **Contextual Conversations** - Picks up where you left off
-- 📁 **Transparent File Storage** - Memory stored in readable Markdown files
-- ⚡ **Intelligent Memory Management** - Automatically organizes and condenses memories
-- 🛡️ **Privacy-Focused** - Local-first design with full user control
+```bash
+# 1. Clone and setup
+git clone https://github.com/yourusername/personal-ai-assistant.git
+cd personal-ai-assistant
+python -m venv venv && source venv/bin/activate
 
-### Technical Features
-- Built on [Strands Agents](https://strandsagents.com/) framework
-- Model Context Protocol (MCP) integration
-- Configurable AI providers (Anthropic Claude, OpenAI, AWS Bedrock)
-- File-based memory with automatic time-windowed organization
-- Chain-of-thought reasoning for memory decisions
-- Rich CLI interface with conversation history
+# 2. Install (choose your speed)
+pip install -r requirements-minimal.txt      # Fast: ~15MB, essentials only
+# OR pip install -r requirements.txt         # Standard: ~50MB, includes dev tools
 
-## 🚀 Quick Start
+# 3. Add your API key to .env
+echo "ANTHROPIC_API_KEY=your_key_here" > .env
 
-### Prerequisites
+# 4. Start chatting!
+python src/main.py
+```
 
-- Python 3.8 or higher
-- Git
-- API key for your preferred AI provider (Anthropic Claude recommended)
+**That's it!** The assistant will auto-configure everything else and create your memory system on first run.
 
-### Installation
+## 📦 Installation Options
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/yourusername/personal-ai-assistant.git
-   cd personal-ai-assistant
-   ```
+Choose the installation that fits your needs:
 
-2. **Set up Python virtual environment:**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+### 🚀 **Minimal (Recommended for Users)**
+```bash
+pip install -r requirements-minimal.txt
+```
+- **Size**: ~15MB download
+- **Contains**: Core runtime dependencies only
+- **Perfect for**: Just want to chat with the assistant
 
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### 📦 **Standard (Recommended for Contributors)** 
+```bash
+pip install -r requirements.txt
+```
+- **Size**: ~50MB download  
+- **Contains**: Core + development/testing tools
+- **Perfect for**: Contributing code or running tests
 
-4. **Configure environment:**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your API keys and preferences
-   ```
-
-5. **Run the assistant:**
-   ```bash
-   python src/main.py
-   ```
+### 🔧 **Development (Full Features)**
+```bash
+pip install -r requirements-dev.txt
+```
+- **Size**: ~200MB download
+- **Contains**: Everything + ML features (vector search, embeddings)
+- **Perfect for**: Advanced features and research
 
 ## ⚙️ Configuration
 
-### Environment Setup
+### 🎯 Essential Setup (Required)
 
-Copy `.env.example` to `.env` and configure:
+The assistant auto-detects your AI provider from your API key format:
 
 ```bash
-# Required: Your AI provider API key
-ANTHROPIC_API_KEY=your_api_key_here
+# Anthropic Claude (Recommended)
+ANTHROPIC_API_KEY=sk-ant-your_key_here
 
-# Optional: Customize memory settings
-MEMORY_BASE_PATH=~/assistant_memory
-MEMORY_RECENT_DAYS=30
-MEMORY_MEDIUM_DAYS=180
+# OpenAI GPT
+OPENAI_API_KEY=sk-your_key_here  
 
-# Optional: Assistant personality
-SYSTEM_PROMPT_FILE=config/system_prompts.json
+# AWS Bedrock (auto-detected from AWS credentials)
+AWS_ACCESS_KEY_ID=your_key_here
+AWS_SECRET_ACCESS_KEY=your_secret_here
 ```
 
-### AI Provider Configuration
+### 🎨 Optional Customization
 
-The assistant supports multiple AI providers:
+**Auto-created `.env` file** includes sensible defaults. Customize if needed:
 
-#### Anthropic Claude (Default)
 ```bash
-AI_PROVIDER=anthropic
-ANTHROPIC_API_KEY=your_key_here
-ANTHROPIC_MODEL=claude-3-sonnet-20240229
-```
+# Memory location (default: ~/.assistant_memory)
+MEMORY_BASE_PATH=~/my_ai_memory
 
-#### OpenAI
-```bash
-AI_PROVIDER=openai
-OPENAI_API_KEY=your_key_here
+# Assistant personality (default: friendly and helpful)
+AGENT_NAME="My AI Assistant"
+
+# Advanced: AI model selection (auto-configured by provider)
+ANTHROPIC_MODEL=claude-3-5-sonnet-20241022-v2:0
 OPENAI_MODEL=gpt-4-turbo-preview
 ```
 
-#### AWS Bedrock
-```bash
-AI_PROVIDER=bedrock
-AWS_ACCESS_KEY_ID=your_key_here
-AWS_SECRET_ACCESS_KEY=your_secret_here
-AWS_REGION=us-east-1
+**See [Configuration Guide](docs/configuration.md) for all options.**
+
+## 💬 Real Usage Examples
+
+### First Meeting
+```
+You: Hi! I'm Alex, a product manager at a startup working on a mobile fitness app.
+Assistant: Nice to meet you, Alex! I'll remember that you're a product manager at a startup working on mobile fitness apps. What challenges are you facing with the app development?
+
+You: We're struggling with user retention. People download it but stop using it after a week.
+Assistant: I'll make a note about your user retention challenge. Have you identified what's causing users to drop off? Is it the onboarding, the features, or something else?
 ```
 
-## 💬 Usage Examples
-
-### First Conversation
+### Returning User (Weeks Later)
 ```
-You: Hi, I'm Sarah and I'm a software engineer working on mobile apps.
-Assistant: Nice to meet you, Sarah! I'll remember that you're a software engineer focusing on mobile apps. What kind of mobile development are you working on?
+Assistant: Welcome back, Alex! How's the user retention issue going with your fitness app? Last time we discussed strategies for improving the onboarding experience.
 
-You: I'm building a React Native app for fitness tracking.
-Assistant: That sounds interesting! I'll keep track of your React Native fitness app project. How's the development going?
+You: We implemented your suggestions and retention improved by 40%!
+Assistant: That's fantastic news! I'm updating my notes with this success. What specific changes made the biggest impact?
 ```
 
-### Later Conversation (Days/Weeks Later)
+### Memory in Action
 ```
-Assistant: Good morning, Sarah! How's your React Native fitness app coming along? Last time we talked, you mentioned you were working on the tracking features.
+You: I'm thinking about changing careers from product management to UX design.
+Assistant: That's a significant shift, Alex! I remember you've been working as a PM at your startup with the fitness app. What's driving your interest in UX design? Have you noticed design challenges in your current role?
 
-You: Actually, I decided to switch to Flutter instead.
-Assistant: That's a significant change! I'll update my notes about your project. What made you decide to switch from React Native to Flutter?
+You: Yes, exactly! Working on the app made me realize I love the design problem-solving aspect.
+Assistant: That makes perfect sense - your experience with user retention issues probably gave you insights into user experience. I'll keep track of this career exploration. Are you looking into formal UX training?
 ```
 
 ## 🧠 Memory System
 
 ### Memory Organization
 
-Your memories are stored in `~/assistant_memory/` with this structure:
+Your memories are stored in `~/.assistant_memory/` with this structure:
 
 ```
-~/assistant_memory/
-├── core/
-│   ├── user_profile.md           # Your basic info and preferences
-│   ├── active_context.md         # Current conversation topics
-│   ├── relationship_evolution.md # How our relationship has developed
-│   ├── preferences_patterns.md   # Your communication style & preferences
-│   └── life_context.md          # Work, interests, ongoing situations
-├── interactions/
-│   └── 2024-06/                 # Monthly conversation logs
-├── condensed/
-│   ├── recent/     (0-30 days)  # Full detail memories
-│   ├── medium/     (30-180 days) # Summarized key points
-│   └── archive/    (180+ days)  # Essential facts only
-└── system/
-    ├── config.json              # Memory management settings
-    └── embeddings/              # Search indexes (if enabled)
+~/.assistant_memory/
+├── core/                          # 🎯 Essential facts about you
+│   ├── user_profile.md           #     Basic info, role, interests
+│   ├── active_context.md         #     Current projects & topics
+│   ├── relationship_evolution.md #     How you work with the assistant
+│   ├── preferences_patterns.md   #     Communication style & habits
+│   └── life_context.md          #     Work, goals, important situations
+├── interactions/                  # 📚 Full conversation logs
+│   ├── 2024-12/
+│   │   ├── 2024-12-15-conversation-001.md
+│   │   └── 2024-12-15-conversation-002.md
+│   └── 2024-11/
+├── condensed/                     # 🗂️ Time-organized summaries
+│   ├── recent/     (0-30 days)   #     Full detail, current relevance
+│   ├── medium/     (30-180 days) #     Key points, important context
+│   └── archive/    (180+ days)   #     Essential facts only
+└── system/                        # ⚙️ Assistant operations
+    ├── config.json               #     Memory settings
+    ├── analytics.db              #     Usage patterns (optional)
+    └── backups/                  #     Automatic memory backups
 ```
 
 ### Memory Features
@@ -186,7 +185,7 @@ personal-ai-assistant/
 │   ├── integration/        # Integration tests
 │   └── unit/              # Unit tests
 ├── requirements.txt        # Python dependencies
-├── .env.example           # Environment configuration template
+├── .env-example           # Environment configuration template
 └── README.md             # This file
 ```
 
@@ -255,7 +254,7 @@ MEMORY_MAX_FILE_SIZE_MB=5
 
 **Assistant doesn't remember previous conversations:**
 - Check that `MEMORY_BASE_PATH` exists and is writable
-- Verify memory files are being created in `~/assistant_memory/`
+- Verify memory files are being created in `~/.assistant_memory/`
 - Check logs for memory operation errors
 
 **API key errors:**
@@ -275,75 +274,25 @@ MEMORY_MAX_FILE_SIZE_MB=5
 
 ### Getting Help
 
-1. Check the [Issues](https://github.com/jason-c-dev/personal-ai-assistant/issues) page
-2. Review memory files in `~/assistant_memory/` for debugging
-3. Enable debug logging with `DEBUG=true` in `.env`
-4. Check the assistant's reasoning in memory files' YAML frontmatter
+**📚 [Complete Documentation](docs/README.md)** - Full guides and advanced configuration
 
-## 🤝 Contributing
+**Quick Help:**
+1. **Memory Issues**: Check files in `~/.assistant_memory/` directly
+2. **Configuration**: See [Configuration Guide](docs/configuration.md) 
+3. **Memory System**: Read [Memory System Guide](docs/memory-system.md)
+4. **Development**: Check [Development Guide](docs/development.md)
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### Development Setup
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes and add tests
-4. Run tests and ensure code quality: `pytest && black . && flake8`
-5. Submit a pull request
-
-## 📊 Architecture
-
-### High-Level Overview
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   CLI Interface │────│  Strands Agent   │────│  AI Provider    │
-│                 │    │                  │    │ (Claude/GPT/etc)│
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌──────────────────┐
-                       │   MCP Servers    │
-                       │ ┌──────────────┐ │
-                       │ │ Filesystem   │ │
-                       │ │ Memory Search│ │
-                       │ └──────────────┘ │
-                       └──────────────────┘
-                                │
-                                ▼
-                       ┌──────────────────┐
-                       │ Memory Files     │
-                       │ (Markdown + YAML)│
-                       └──────────────────┘
+**Debug Logging** - Add to your `.env` file:
+```bash
+LOG_LEVEL=DEBUG
+MEMORY_DEBUG=true
+MCP_DEBUG=true
 ```
 
-### Key Components
-
-- **Strands Agent**: Orchestrates conversation flow and memory operations
-- **MCP Servers**: Handle file operations and memory search
-- **Memory Manager**: Organizes, condenses, and maintains memory files
-- **CLI Interface**: Rich terminal interface for user interaction
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Strands Agents](https://strandsagents.com/) for the agent framework
-- [Model Context Protocol](https://modelcontextprotocol.io/) for standardized tool integration
-- [Anthropic](https://www.anthropic.com/) for Claude AI capabilities
-- The open-source community for inspiration and tools
-
-## 🔄 Version History
-
-- **v0.1.0** - Initial release with core memory functionality
-- **v0.2.0** - Added intelligent memory condensation
-- **v0.3.0** - Multi-provider support and improved CLI
+**Community Support:**
+- [GitHub Issues](https://github.com/jason-c-dev/personal-ai-assistant/issues) - Bug reports and feature requests
+- [GitHub Discussions](https://github.com/jason-c-dev/personal-ai-assistant/discussions) - Questions and community help
 
 ---
 
-**Built with ❤️ for meaningful AI relationships**
-
-*Questions? Feedback? [Open an issue](https://github.com/jason-c-dev/personal-ai-assistant/issues) or start a discussion!* 
+**Ready to have AI conversations that actually remember you? Get started with the 30-second setup above! 🚀**

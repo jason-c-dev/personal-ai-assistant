@@ -9,10 +9,12 @@ from .core_agent import PersonalAssistantAgent
 from .agent_config import AgentConfig
 from .mcp_client import MCPClient
 from .strands_mcp_tools import StrandsMCPTools
+from .cli import AgentCLI
 
 __all__ = [
     'PersonalAssistantAgent',
     'AgentConfig', 
     'MCPClient',
-    'StrandsMCPTools'
+    'StrandsMCPTools',
+    'AgentCLI'
 ] 

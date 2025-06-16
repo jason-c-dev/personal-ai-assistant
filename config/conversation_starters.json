@@ -1,0 +1,74 @@
+{
+  "personal_introduction": [
+    {
+      "title": "👋 New Team Member",
+      "prompt": "Hi! I'm [name], just started as a [role] at [company]. I'll be working on [area/project] and would love to learn about [specific topic].",
+      "expected_response": "The assistant will remember your role, company, and learning interests for future conversations."
+    },
+    {
+      "title": "🎯 Career Transition", 
+      "prompt": "I'm [name], transitioning from [old role] to [new role]. I have experience with [skills] but need to learn [new skills] for my new position at [company].",
+      "expected_response": "The assistant will track your career transition and adapt learning suggestions accordingly."
+    }
+  ],
+  "project_collaboration": [
+    {
+      "title": "💼 Project Planning",
+      "prompt": "I'm leading a [timeframe] project to [objective] at [company]. Our main challenges are [challenge1] and [challenge2]. I need help with [specific area].",
+      "expected_response": "The assistant will remember your project details and provide contextual help in future sessions."
+    },
+    {
+      "title": "🚀 Product Launch",
+      "prompt": "We're launching [product] in [timeframe]. I'm responsible for [your role] and need to coordinate [tasks]. What should I prioritize?",
+      "expected_response": "The assistant will track your launch timeline and responsibilities for ongoing support."
+    }
+  ],
+  "learning_journey": [
+    {
+      "title": "📚 Technology Learning",
+      "prompt": "I want to learn [technology/framework] for my work on [project type]. I prefer [learning style] and have [current experience level]. Where should I start?",
+      "expected_response": "The assistant will remember your learning preferences and track your progress over time."
+    },
+    {
+      "title": "🎓 Skill Development",
+      "prompt": "I need to improve my [skill area] skills for my role as [position]. I learn best through [method] and have [time commitment] available per week.",
+      "expected_response": "The assistant will create a personalized learning plan and check your progress regularly."
+    }
+  ],
+  "problem_solving": [
+    {
+      "title": "🔧 Technical Challenge",
+      "prompt": "I'm stuck on [specific problem] in [technology/context]. I've tried [attempted solutions] but [what happened]. My setup is [environment/tools].",
+      "expected_response": "The assistant will remember your tech stack and provide targeted solutions for similar future issues."
+    },
+    {
+      "title": "💡 Decision Making",
+      "prompt": "I need to decide between [option1] and [option2] for [context]. The key factors are [factor1], [factor2], and [factor3]. What should I consider?",
+      "expected_response": "The assistant will help analyze options and remember your decision criteria for future choices."
+    }
+  ],
+  "daily_productivity": [
+    {
+      "title": "📅 Daily Planning",
+      "prompt": "Today I need to [list of tasks]. My priorities are [priority1], [priority2]. I work best in [time periods] and get distracted by [distractions].",
+      "expected_response": "The assistant will learn your work patterns and help optimize your daily planning."
+    },
+    {
+      "title": "📊 Progress Review",
+      "prompt": "This week I completed [accomplishments] but struggled with [challenges]. Next week I need to focus on [upcoming tasks].",
+      "expected_response": "The assistant will track your progress patterns and suggest improvements for productivity."
+    }
+  ],
+  "creative_collaboration": [
+    {
+      "title": "🎨 Creative Project",
+      "prompt": "I'm working on [creative project] with goals of [objectives]. My style is [style description] and I'm inspired by [influences]. I need help with [specific aspect].",
+      "expected_response": "The assistant will remember your creative preferences and provide tailored inspiration and feedback."
+    },
+    {
+      "title": "✍️ Content Creation",
+      "prompt": "I create [content type] for [audience]. My voice is [tone/style] and I focus on [topics]. I'm struggling with [specific challenge].",
+      "expected_response": "The assistant will learn your content style and help maintain consistency across projects."
+    }
+  ]
+} 

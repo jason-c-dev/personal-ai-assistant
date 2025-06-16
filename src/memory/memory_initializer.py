@@ -18,7 +18,7 @@ try:
 except ImportError:
     # Fallback if running standalone
     def get_memory_base_path() -> str:
-        return os.getenv('MEMORY_BASE_PATH', '~/assistant_memory')
+        return os.getenv('MEMORY_BASE_PATH', '~/.assistant_memory')
 
 
 class MemoryInitializer:

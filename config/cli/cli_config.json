@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "created_at": "2025-06-16T10:21:33.960830",
+  "last_modified": "2025-06-16T10:21:33.960851",
+  "ui_theme": {
+    "name": "default",
+    "primary_color": "cyan",
+    "secondary_color": "blue",
+    "success_color": "green",
+    "warning_color": "yellow",
+    "error_color": "red",
+    "info_color": "blue",
+    "dim_color": "dim",
+    "bold_headers": true,
+    "use_borders": true,
+    "use_icons": true,
+    "panel_border_style": "rounded",
+    "table_style": "rounded"
+  },
+  "display": {
+    "mode": 

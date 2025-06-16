@@ -1,49 +1,84 @@
-# Core AI Agent Framework
+# Personal AI Assistant Dependencies
+# Optimized for actual usage - only includes what we import and use
+
+# ==================================================
+# CORE FRAMEWORK (Required)
+# ==================================================
+# Strands AI Agent Framework  
 strands-agents>=0.1.0
 strands-agents-tools>=0.1.0
 
-# AI Model Providers
-anthropic>=0.34.0
-openai>=1.0.0
-boto3>=1.34.0  # For AWS Bedrock if needed
-
-# Model Context Protocol (MCP) Servers
+# Model Context Protocol (MCP) - Used in mcp_client.py and servers
 mcp>=1.0.0
 
-# File Operations and Memory Management
-pyyaml>=6.0.1
-python-dateutil>=2.8.2
-pathlib2>=2.3.7
+# ==================================================
+# AI MODEL PROVIDERS (Choose based on your setup)
+# ==================================================
+# Anthropic Claude (if using ANTHROPIC_API_KEY)
+anthropic>=0.34.0
 
-# Environment and Configuration Management
+# OpenAI Models (if using OPENAI_API_KEY) 
+openai>=1.0.0
+
+# AWS Bedrock (if using AWS credentials) - boto3 is included in strands-agents
+# boto3>=1.34.0  # Already included via strands-agents
+
+# ==================================================
+# CORE RUNTIME DEPENDENCIES  
+# ==================================================
+# Configuration and Settings Management
 python-dotenv>=1.0.0
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
 
-# CLI Interface
-click>=8.1.7
-rich>=13.7.0  # For enhanced terminal output
-prompt-toolkit>=3.0.43  # For interactive CLI
+# File and Memory Operations
+pyyaml>=6.0.1
+python-dateutil>=2.8.2
 
+# CLI Interface and User Experience
+click>=8.1.7              # Used in cli.py
+rich>=13.7.0              # Heavily used for terminal UI
+prompt-toolkit>=3.0.43    # CLI interactions
+
+# Async Operations
+aiofiles>=23.2.1          # Async file operations
+
+# ==================================================
+# DEVELOPMENT AND TESTING (Optional for end users)
+# ==================================================
 # Testing Framework
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
 pytest-mock>=3.12.0
 pytest-cov>=4.1.0
 
-# Development Tools
-black>=23.12.0  # Code formatting
-flake8>=6.1.0   # Linting
-mypy>=1.8.0     # Type checking
+# Code Quality Tools
+black>=23.12.0            # Code formatting
+flake8>=6.1.0             # Linting  
+mypy>=1.8.0               # Type checking
 
-# Utilities
-requests>=2.31.0
-aiofiles>=23.2.1  # Async file operations
-uvloop>=0.19.0    # Fast event loop (Unix only)
+# ==================================================
+# OPTIONAL HEAVY FEATURES (Install separately if needed)
+# ==================================================
+# Vector Database and Semantic Search
+# chromadb>=0.4.0
+# sentence-transformers>=2.2.0
+# 
+# Performance Optimizations
+# uvloop>=0.19.0           # Fast event loop (Unix only)
+#
+# Advanced Logging
+# structlog>=23.2.0
+#
+# Install these with: pip install chromadb sentence-transformers uvloop structlog
 
-# Memory and Search
-chromadb>=0.4.0   # For vector embeddings if needed
-sentence-transformers>=2.2.0  # For semantic search
-
-# Logging and Monitoring
-structlog>=23.2.0 
+# ==================================================
+# AUTOMATIC DEPENDENCIES  
+# ==================================================
+# The following are automatically installed by packages above:
+# - requests (via anthropic/openai)
+# - typing-extensions (via pydantic)
+# - pathlib (built into Python 3.4+, no pathlib2 needed)
+# - boto3, botocore (via strands-agents)
+# - watchdog (via strands-agents)
+# - All OpenTelemetry packages (via strands-agents) 

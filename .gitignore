@@ -13,6 +13,10 @@
 .env.staging
 *.env
 
+# BUT allow environment file templates (these contain no secrets)
+!.env-example
+!.env-advanced-example
+
 # API keys and configuration with sensitive data
 config/secrets.json
 config/production.json
@@ -23,25 +27,34 @@ config/production.json
 # MEMORY AND USER DATA (PRIVACY PROTECTION)
 # =============================================================================
 
-# Assistant memory files (contains personal user data)
+# User memory directories (personal data)
 assistant_memory/
+.assistant_memory/
 ~/assistant_memory/
+~/.assistant_memory/
 test_memory/
 **/memory_files/
 **/user_data/
 
-# Memory system data files (keep structure, ignore content)
+# Project memory template - keep structure files, ignore content
 memory/interactions/**/*.md
 !memory/interactions/**/README.md
 memory/core/*.md
 !memory/core/README.md
-memory/condensed/
-memory/archive/
-memory/system/backups/
+memory/condensed/**/*.md
+!memory/condensed/**/README.md
 memory/system/analytics/
+memory/system/backups/
 memory/system/logs/
 memory/system/temp/
 memory/system/embeddings/
+
+# But keep the project memory template structure for developers
+!memory/README.md
+!memory/core/README.md
+!memory/interactions/README.md
+!memory/condensed/README.md
+!memory/system/README.md
 
 # Vector embeddings and search indexes
 **/embeddings/

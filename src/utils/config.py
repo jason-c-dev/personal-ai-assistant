@@ -22,7 +22,7 @@ def get_memory_base_path() -> str:
     Returns:
         str: Path to memory storage directory
     """
-    default_path = "~/assistant_memory"
+    default_path = "~/.assistant_memory"
     return os.getenv('MEMORY_BASE_PATH', default_path)
 
 

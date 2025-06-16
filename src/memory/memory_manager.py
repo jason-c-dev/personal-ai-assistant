@@ -30,7 +30,7 @@ except ImportError:
     # Fallback for standalone execution
     import os
     def get_memory_base_path() -> str:
-        return os.getenv('MEMORY_BASE_PATH', '~/assistant_memory')
+        return os.getenv('MEMORY_BASE_PATH', '~/.assistant_memory')
     def get_memory_recent_days() -> int:
         return int(os.getenv('MEMORY_RECENT_DAYS', '30'))
     def get_memory_medium_days() -> int:

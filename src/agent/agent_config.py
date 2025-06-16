@@ -13,6 +13,8 @@ import os
 
 class ModelConfig(BaseModel):
     """Configuration for AI model providers"""
+    model_config = {"protected_namespaces": ()}  # Allow model_ fields
+    
     provider: str = Field(default="bedrock", description="Model provider (bedrock, anthropic, openai, etc.)")
     model_id: str = Field(default="anthropic.claude-3-5-sonnet-20241022-v2:0", description="Model identifier")
     temperature: float = Field(default=0.7, ge=0.0, le=2.0, description="Model temperature")

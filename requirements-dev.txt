@@ -1,0 +1,55 @@
+# Development Dependencies for Personal AI Assistant
+# Include the base requirements plus development and optional features
+
+# Include base requirements
+-r requirements.txt
+
+# ==================================================
+# HEAVY OPTIONAL FEATURES
+# ==================================================
+# Vector Database and Semantic Search (large downloads)
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+
+# Performance Optimizations
+uvloop>=0.19.0              # Fast event loop (Unix only)
+
+# Advanced Logging and Monitoring
+structlog>=23.2.0
+
+# ==================================================
+# DEVELOPMENT TOOLS (Already in requirements.txt but listed for clarity)
+# ==================================================
+# Testing Framework (already included in base)
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# pytest-mock>=3.12.0
+# pytest-cov>=4.1.0
+
+# Code Quality Tools (already included in base)
+# black>=23.12.0
+# flake8>=6.1.0
+# mypy>=1.8.0
+
+# ==================================================
+# ADDITIONAL DEVELOPMENT UTILITIES
+# ==================================================
+# Documentation
+sphinx>=7.1.0              # Documentation generation
+sphinx-rtd-theme>=1.3.0    # ReadTheDocs theme
+
+# Development utilities
+pre-commit>=3.0.0          # Git hooks for code quality
+jupyter>=1.0.0             # Notebook development
+ipython>=8.0.0             # Enhanced REPL
+
+# Performance profiling
+memory-profiler>=0.61.0    # Memory usage profiling
+line-profiler>=4.0.0       # Line-by-line profiling
+
+# ==================================================
+# INSTALLATION NOTES
+# ==================================================
+# Install with: pip install -r requirements-dev.txt
+# This will install ALL features including heavy ML dependencies
+# Use requirements.txt for production/end-user installations 
