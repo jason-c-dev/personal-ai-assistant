@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "created": "2025-06-15T17:02:47.875139",
+  "memory_settings": {
+    "recent_days": 30,
+    "medium_days": 180,
+    "archive_days": 365,
+    "max_file_size_mb": 5,
+    "backup_enabled": true
+  },
+  "importance_thresholds": {
+    "high": 7,
+    "medium": 4,
+    "low": 1
+  },
+  "condensation_settings": {
+    "auto_condense": true,
+    "condensation_ratio": 0.3,
+    "preserve_high_importance": true
+  }
+}
