@@ -237,7 +237,7 @@ def create_backup(file_path: str) -> str:
         return f"Error creating backup: {str(e)}"
 
 
-async def main():
+def main():
     """Main entry point for the filesystem server."""
     import sys
     
@@ -248,8 +248,8 @@ async def main():
     memory_base_path = sys.argv[1]
     initialize_server(memory_base_path)
     
-    # Run the server with stdio transport
-    await mcp.run(transport="stdio")
+    # Let mcp framework handle the event loop
+    mcp.run(transport="stdio")
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    main()

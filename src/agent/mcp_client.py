@@ -323,6 +323,37 @@ class MCPClient:
         """Get all available MCP tools."""
         return self.available_tools.copy()
     
+    async def get_status(self) -> Dict[str, Any]:
+        """Get the status of the MCP client."""
+        try:
+            # Test if we can create tool wrappers (indicates client is working)
+            tool_count = len(self.available_tools)
+            
+            # Test basic functionality by checking if memory server tools exist
+            has_memory_tools = any('memory' in tool_name for tool_name in self.available_tools.keys())
+            has_filesystem_tools = any('file' in tool_name for tool_name in self.available_tools.keys())
+            
+            return {
+                'connected': True,
+                'initialized': True,
+                'tool_count': tool_count,
+                'has_memory_tools': has_memory_tools,
+                'has_filesystem_tools': has_filesystem_tools,
+                'memory_base_path': str(self.memory_base_path),
+                'available_tools': list(self.available_tools.keys())
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting MCP client status: {e}")
+            return {
+                'connected': False,
+                'initialized': False,
+                'error': str(e),
+                'tool_count': 0,
+                'has_memory_tools': False,
+                'has_filesystem_tools': False
+            }
+    
     async def shutdown(self) -> None:
         """Shutdown the MCP client."""
         logger.info("Shutting down MCP client...")

@@ -33,7 +33,7 @@ pip install -r requirements-minimal.txt      # Fast: ~15MB, essentials only
 echo "ANTHROPIC_API_KEY=your_key_here" > .env
 
 # 4. Start chatting!
-python src/main.py
+python -m src.mainy
 ```
 
 **That's it!** The assistant will auto-configure everything else and create your memory system on first run.
@@ -168,6 +168,8 @@ Your memories are stored in `~/.assistant_memory/` with this structure:
 - **Importance Scoring**: Memories rated 1-10 for retention priority
 
 ## 🛠️ Development
+
+> **🔄 Upcoming in Task 7.0**: We're refactoring to use Strands agent SDK's native MCP integration instead of our custom implementation. This will simplify the codebase and provide better compatibility with the broader MCP ecosystem. See `tasks/task-7-strands-mcp-refactor-breakdown.md` for details.
 
 ### Project Structure
 

@@ -196,18 +196,42 @@ class CLIConfig:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
-        return asdict(self)
+        def convert_enums(obj):
+            """Recursively convert Enum objects to their values."""
+            if isinstance(obj, Enum):
+                return obj.value
+            elif isinstance(obj, dict):
+                return {key: convert_enums(value) for key, value in obj.items()}
+            elif isinstance(obj, (list, tuple)):
+                return [convert_enums(item) for item in obj]
+            elif hasattr(obj, '__dict__'):
+                result = {}
+                for key, value in obj.__dict__.items():
+                    result[key] = convert_enums(value)
+                return result
+            else:
+                return obj
+        
+        return convert_enums(asdict(self))
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'CLIConfig':
         """Create from dictionary."""
-        # Handle nested dataclasses
+        # Handle nested dataclasses and enums
         if 'ui_theme' in data:
             data['ui_theme'] = UIThemeConfig(**data['ui_theme'])
         if 'display' in data:
-            data['display'] = DisplayConfig(**data['display'])
+            display_data = data['display'].copy()
+            # Convert enum string back to enum
+            if isinstance(display_data.get('mode'), str):
+                display_data['mode'] = DisplayMode(display_data['mode'])
+            data['display'] = DisplayConfig(**display_data)
         if 'behavior' in data:
-            data['behavior'] = BehaviorConfig(**data['behavior'])
+            behavior_data = data['behavior'].copy()
+            # Convert enum string back to enum
+            if isinstance(behavior_data.get('response_style'), str):
+                behavior_data['response_style'] = ResponseStyle(behavior_data['response_style'])
+            data['behavior'] = BehaviorConfig(**behavior_data)
         if 'shortcuts' in data:
             data['shortcuts'] = ShortcutsConfig(**data['shortcuts'])
         

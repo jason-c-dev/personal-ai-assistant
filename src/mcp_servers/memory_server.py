@@ -13,8 +13,14 @@ from datetime import datetime
 from mcp.server.fastmcp import FastMCP
 from mcp.types import Resource, TextResourceContents
 
-from ..memory.memory_manager import MemoryManager
-from ..memory.file_operations import MemoryFileOperations
+import sys
+from pathlib import Path
+
+# Add src directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from memory.memory_manager import MemoryManager
+from memory.file_operations import MemoryFileOperations
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -176,7 +182,7 @@ def update_memory(content: str, memory_type: str = "conversation",
         raise RuntimeError("Memory server not initialized")
     
     try:
-        from ..memory.memory_manager import MemoryEntry
+        from memory.memory_manager import MemoryEntry
         
         # Create a memory entry
         entry = MemoryEntry(
@@ -309,7 +315,7 @@ def recent_context_resource() -> Resource:
         mimeType="application/json"
     )
 
-async def main():
+def main():
     """Main entry point for the memory server."""
     import sys
     
@@ -320,8 +326,8 @@ async def main():
     memory_base_path = sys.argv[1]
     initialize_memory_server(memory_base_path)
     
-    # Run the server with stdio transport
-    await mcp.run(transport="stdio")
+    # Let mcp framework handle the event loop
+    mcp.run(transport="stdio")
 
 if __name__ == "__main__":
-    asyncio.run(main()) 
+    main()
