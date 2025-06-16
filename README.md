@@ -21,7 +21,7 @@ Unlike traditional AI assistants that forget everything between conversations, t
 
 ```bash
 # 1. Clone and setup
-git clone https://github.com/yourusername/personal-ai-assistant.git
+git clone https://github.com/jason-c-dev/personal-ai-assistant.git
 cd personal-ai-assistant
 python -m venv venv && source venv/bin/activate
 
