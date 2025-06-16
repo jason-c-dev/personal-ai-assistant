@@ -18,4 +18,47 @@
     "table_style": "rounded"
   },
   "display": {
-    "mode": 
+    "mode": "interactive",
+    "width": 120,
+    "height": 40,
+    "auto_scroll": true,
+    "show_typing_indicators": true,
+    "show_timestamps": false,
+    "show_system_messages": true,
+    "truncate_long_messages": true,
+    "max_message_length": 500
+  },
+  "interaction": {
+    "auto_save": true,
+    "save_interval": 30,
+    "confirm_exit": true,
+    "enable_shortcuts": true,
+    "enable_autocomplete": true,
+    "history_size": 100,
+    "default_timeout": 30
+  },
+  "commands": {
+    "prefix": "/",
+    "case_sensitive": false,
+    "show_help_on_error": true,
+    "enable_aliases": true
+  },
+  "performance": {
+    "max_memory_usage": "512MB",
+    "cache_size": 100,
+    "lazy_loading": true,
+    "background_processing": true
+  },
+  "accessibility": {
+    "high_contrast": false,
+    "large_text": false,
+    "screen_reader_support": false,
+    "keyboard_navigation": true
+  },
+  "advanced": {
+    "debug_mode": false,
+    "verbose_logging": false,
+    "experimental_features": false,
+    "telemetry": false
+  }
+}

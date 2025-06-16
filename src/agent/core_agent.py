@@ -580,30 +580,29 @@ You have access to the user's profile, recent conversations, and preferences.
             server_name = self.mcp_server_names[i] if i < len(self.mcp_server_names) else f"server_{i}"
             
             try:
-                # Use context manager for proper session management
-                async with client as session:
-                    # Discover tools using native Strands method
-                    tools = await session.list_tools()
-                    
-                    # Add namespace prefix to tool names to avoid conflicts
-                    namespaced_tools = []
-                    for tool in tools:
-                        if hasattr(tool, 'name'):
-                            # Add server prefix to tool name for uniqueness
-                            original_name = tool.name
-                            tool.name = f"{server_name}_{original_name}"
-                            
-                            # Update description to include server source
-                            if hasattr(tool, 'description'):
-                                tool.description = f"[{server_name}] {tool.description}"
-                            
-                            logger.debug(f"Namespaced tool: {original_name} -> {tool.name}")
+                # Use direct list_tools_sync() method for Strands MCPClient
+                # This avoids the async context manager issue
+                tools = client.list_tools_sync()
+                
+                # Add namespace prefix to tool names to avoid conflicts
+                namespaced_tools = []
+                for tool in tools:
+                    if hasattr(tool, 'name'):
+                        # Add server prefix to tool name for uniqueness
+                        original_name = tool.name
+                        tool.name = f"{server_name}_{original_name}"
                         
-                        namespaced_tools.append(tool)
+                        # Update description to include server source
+                        if hasattr(tool, 'description'):
+                            tool.description = f"[{server_name}] {tool.description}"
+                        
+                        logger.debug(f"Namespaced tool: {original_name} -> {tool.name}")
                     
-                    all_tools.extend(namespaced_tools)
-                    logger.info(f"✅ Discovered {len(tools)} tools from {server_name} server")
-                    
+                    namespaced_tools.append(tool)
+                
+                all_tools.extend(namespaced_tools)
+                logger.info(f"✅ Discovered {len(tools)} tools from {server_name} server")
+                
             except Exception as e:
                 logger.error(f"❌ Error discovering tools from {server_name} server: {e}")
                 # Continue with other servers instead of failing completely
@@ -958,17 +957,16 @@ You have access to the user's profile, recent conversations, and preferences.
                     
                     try:
                         # Test connection by attempting to list tools
-                        async with client as session:
-                            tools = await session.list_tools()
-                            server_status["status"] = "operational"
-                            server_status["tools_count"] = len(tools)
-                            
-                            # Store tool names for this server
-                            mcp_status["server_tools"][server_name] = [
-                                tool.name if hasattr(tool, 'name') else str(tool) 
-                                for tool in tools
-                            ]
-                            
+                        tools = client.list_tools_sync()
+                        server_status["status"] = "operational"
+                        server_status["tools_count"] = len(tools)
+                        
+                        # Store tool names for this server
+                        mcp_status["server_tools"][server_name] = [
+                            tool.name if hasattr(tool, 'name') else str(tool) 
+                            for tool in tools
+                        ]
+                        
                     except Exception as e:
                         server_status["status"] = "error"
                         server_status["error"] = str(e)
