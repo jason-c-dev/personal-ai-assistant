@@ -30,10 +30,29 @@ test_memory/
 **/memory_files/
 **/user_data/
 
+# Memory system data files (keep structure, ignore content)
+memory/interactions/**/*.md
+!memory/interactions/**/README.md
+memory/core/*.md
+!memory/core/README.md
+memory/condensed/
+memory/archive/
+memory/system/backups/
+memory/system/analytics/
+memory/system/logs/
+memory/system/temp/
+memory/system/embeddings/
+
 # Vector embeddings and search indexes
 **/embeddings/
 *.faiss
 *.chroma
+
+# Memory system databases and caches
+memory/**/*.db
+memory/**/*.sqlite
+memory/**/*.sqlite3
+memory/**/*.cache
 
 # =============================================================================
 # PYTHON
@@ -343,6 +362,8 @@ experiments/
 playground/
 temp_*.py
 test_*.py.tmp
+test_*_simple.py
+debug_*.py
 
 # Configuration overrides (keep templates)
 config/local_*.json

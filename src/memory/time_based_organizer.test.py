@@ -11,11 +11,20 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 
-from time_based_organizer import (
-    TimeBasedOrganizer, TimeWindow, MemoryTimeMetrics, 
-    CondensationCandidate
-)
-from file_operations import write_memory_file
+# Handle imports gracefully for both package and standalone execution
+try:
+    from .time_based_organizer import (
+        TimeBasedOrganizer, TimeWindow, MemoryTimeMetrics, 
+        CondensationCandidate
+    )
+    from .file_operations import write_memory_file
+except ImportError:
+    # Fallback for standalone execution
+    from time_based_organizer import (
+        TimeBasedOrganizer, TimeWindow, MemoryTimeMetrics, 
+        CondensationCandidate
+    )
+    from file_operations import write_memory_file
 
 
 @pytest.fixture
@@ -246,7 +255,10 @@ class TestCondensationCandidates:
             # Verify the candidate is actually in the medium time window
             file_path = Path(candidate.file_path)
             if file_path.exists():
-                from file_operations import read_memory_file
+                try:
+                    from .file_operations import read_memory_file
+                except ImportError:
+                    from file_operations import read_memory_file
                 frontmatter, _ = read_memory_file(file_path)
                 created_str = frontmatter.get('created', '')
                 if created_str:

@@ -14,8 +14,14 @@ from dataclasses import dataclass
 from enum import Enum
 import logging
 
-from .file_operations import MemoryFileOperations, read_memory_file, write_memory_file
-from .memory_manager import MemoryEntry, SearchResult, MemoryType, ImportanceLevel
+# Handle imports gracefully for both package and standalone execution
+try:
+    from .file_operations import MemoryFileOperations, read_memory_file, write_memory_file
+    from .memory_manager import MemoryEntry, SearchResult, MemoryType, ImportanceLevel
+except ImportError:
+    # Fallback for standalone execution
+    from file_operations import MemoryFileOperations, read_memory_file, write_memory_file
+    from memory_manager import MemoryEntry, SearchResult, MemoryType, ImportanceLevel
 
 logger = logging.getLogger(__name__)
 

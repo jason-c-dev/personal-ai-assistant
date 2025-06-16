@@ -11,7 +11,7 @@ This directory contains comprehensive tests for the Personal AI Assistant agent 
 - `strands_mcp_tools.test.py` - Strands tool wrapper tests
 
 ### Integration Tests (tests/integration/)
-- `test_agent_integration.py` - End-to-end system integration tests
+- Integration tests will be added as needed for new features (currently empty)
 
 ## Running Tests
 
@@ -54,8 +54,8 @@ python -m pytest src/agent/core_agent.test.py
 # Test MCP client
 python -m pytest src/agent/mcp_client.test.py
 
-# Test integration scenarios
-python -m pytest tests/integration/test_agent_integration.py
+# Test integration scenarios (when available)
+# python -m pytest tests/integration/
 ```
 
 ## Test Categories and Markers
