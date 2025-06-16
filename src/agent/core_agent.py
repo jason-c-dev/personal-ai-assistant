@@ -556,28 +556,28 @@ You have access to the user's profile, recent conversations, and preferences.
             server_name = self.mcp_server_names[i] if i < len(self.mcp_server_names) else f"server_{i}"
             
             try:
-                # Use direct list_tools_sync() method for Strands MCPClient
-                # This avoids the async context manager issue
-                tools = client.list_tools_sync()
-                
-                # Add namespace prefix to tool names to avoid conflicts
-                namespaced_tools = []
-                for tool in tools:
-                    if hasattr(tool, 'name'):
-                        # Add server prefix to tool name for uniqueness
-                        original_name = tool.name
-                        tool.name = f"{server_name}_{original_name}"
-                        
-                        # Update description to include server source
-                        if hasattr(tool, 'description'):
-                            tool.description = f"[{server_name}] {tool.description}"
-                        
-                        logger.debug(f"Namespaced tool: {original_name} -> {tool.name}")
+                # Use the proper Strands MCP context manager pattern
+                async with client:
+                    tools = await client.list_tools()
                     
-                    namespaced_tools.append(tool)
-                
-                all_tools.extend(namespaced_tools)
-                logger.info(f"✅ Discovered {len(tools)} tools from {server_name} server")
+                    # Add namespace prefix to tool names to avoid conflicts
+                    namespaced_tools = []
+                    for tool in tools:
+                        if hasattr(tool, 'name'):
+                            # Add server prefix to tool name for uniqueness
+                            original_name = tool.name
+                            tool.name = f"{server_name}_{original_name}"
+                            
+                            # Update description to include server source
+                            if hasattr(tool, 'description'):
+                                tool.description = f"[{server_name}] {tool.description}"
+                            
+                            logger.debug(f"Namespaced tool: {original_name} -> {tool.name}")
+                        
+                        namespaced_tools.append(tool)
+                    
+                    all_tools.extend(namespaced_tools)
+                    logger.info(f"✅ Discovered {len(tools)} tools from {server_name} server")
                 
             except Exception as e:
                 logger.error(f"❌ Error discovering tools from {server_name} server: {e}")

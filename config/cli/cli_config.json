@@ -19,46 +19,60 @@
   },
   "display": {
     "mode": "normal",
-    "width": 120,
-    "height": 40,
+    "max_history_display": 20,
+    "max_search_results": 15,
+    "show_timestamps": true,
+    "show_session_stats": true,
+    "show_memory_stats": true,
+    "enable_streaming": true,
+    "stream_chunk_delay": 0.01,
+    "show_progress_bars": true,
+    "use_spinners": true,
     "auto_scroll": true,
-    "show_typing_indicators": true,
-    "show_timestamps": false,
-    "show_system_messages": true,
-    "truncate_long_messages": true,
-    "max_message_length": 500
+    "page_size": 10,
+    "wrap_responses": true,
+    "syntax_highlighting": true,
+    "markdown_rendering": true
   },
-  "interaction": {
-    "auto_save": true,
-    "save_interval": 30,
-    "confirm_exit": true,
-    "enable_shortcuts": true,
-    "enable_autocomplete": true,
-    "history_size": 100,
-    "default_timeout": 30
+  "behavior": {
+    "response_style": "conversational",
+    "auto_save_frequency": 30,
+    "confirmation_prompts": true,
+    "auto_greetings": true,
+    "memory_verbosity": "normal",
+    "show_memory_reasoning": false,
+    "auto_tag_sessions": true,
+    "debug_mode_default": false,
+    "error_recovery_attempts": 3,
+    "show_error_details": false,
+    "auto_create_sessions": true,
+    "session_title_generation": true,
+    "bookmark_important_sessions": true
   },
-  "commands": {
-    "prefix": "/",
-    "case_sensitive": false,
-    "show_help_on_error": true,
-    "enable_aliases": true
+  "shortcuts": {
+    "aliases": {
+      "q": "/quit",
+      "h": "/help",
+      "s": "/status",
+      "m": "/memory",
+      "hist": "/history",
+      "save": "/save",
+      "load": "/load",
+      "new": "/new",
+      "clear": "/clear",
+      "debug": "/debug",
+      "config": "/configure",
+      "theme": "/theme",
+      "prefs": "/preferences"
+    },
+    "quick_commands": {
+      "whatsup": "What's my current status and any important updates?",
+      "remember": "What are the key things you remember about me?",
+      "summary": "Give me a summary of our recent conversations",
+      "goals": "What are my current goals and projects?",
+      "help-me": "I need help with something. What information do you need?"
+    }
   },
-  "performance": {
-    "max_memory_usage": "512MB",
-    "cache_size": 100,
-    "lazy_loading": true,
-    "background_processing": true
-  },
-  "accessibility": {
-    "high_contrast": false,
-    "large_text": false,
-    "screen_reader_support": false,
-    "keyboard_navigation": true
-  },
-  "advanced": {
-    "debug_mode": false,
-    "verbose_logging": false,
-    "experimental_features": false,
-    "telemetry": false
-  }
+  "user_preferences": {},
+  "custom_prompts": {}
 }
