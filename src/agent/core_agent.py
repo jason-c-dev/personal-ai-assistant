@@ -552,8 +552,20 @@ You have access to the user's profile, recent conversations, and preferences.
                 max_tokens=self.config.model.max_tokens,
                 streaming=self.config.model.streaming
             )
+        elif self.config.model.provider == "openai":
+            try:
+                from strands.models.openai import OpenAIModel
+                return OpenAIModel(
+                    model_id=self.config.model.model_id,
+                    max_tokens=self.config.model.max_tokens,
+                    params={
+                        "temperature": self.config.model.temperature,
+                    }
+                )
+            except ImportError:
+                raise ValueError("OpenAI provider requested but strands OpenAI model not available. Install with: pip install 'strands-agents[openai]'")
         else:
-            raise ValueError(f"Unsupported model provider: {self.config.model.provider}")
+            raise ValueError(f"Unsupported model provider: {self.config.model.provider}. Supported providers: anthropic, bedrock, openai")
     
 
     
