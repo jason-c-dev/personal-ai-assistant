@@ -1,0 +1,24 @@
+{
+  "session_id": "b5dfaaa4-92cb-4c95-8715-b44336203d83",
+  "created_at": "2025-06-16T18:14:30.008025",
+  "last_accessed": "2025-06-16T18:14:35.314202",
+  "title": "Hello! Please remember that I like testing new ...",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-16T18:14:35.314194",
+      "user_message": "Hello! Please remember that I like testing new features.",
+      "assistant_response": "Hello! I'll remember that you like testing new features. Let me store this preference in my memory system so I can provide better assistance in the future.Thank you for sharing that! I've saved this information about your preference for testing new features. This will help me tailor our interactions and suggest relevant capabilities when they become available.\n\nIs there anything specific you'd like to explore or test today? I'm here to help with calculations, searching through previous conversations, or providing information based on your interests.",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 6.895218,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

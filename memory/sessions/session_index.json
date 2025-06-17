@@ -50,5 +50,18 @@
     "tags": [],
     "bookmarked": false,
     "has_context": false
+  },
+  "b5dfaaa4-92cb-4c95-8715-b44336203d83": {
+    "session_id": "b5dfaaa4-92cb-4c95-8715-b44336203d83",
+    "title": "Hello! Please remember that I like testing new ...",
+    "description": "",
+    "created_at": "2025-06-16T18:14:30.008025",
+    "last_accessed": "2025-06-16T18:14:35.314202",
+    "total_turns": 1,
+    "total_messages": 1,
+    "duration_minutes": 0.1,
+    "tags": [],
+    "bookmarked": false,
+    "has_context": false
   }
 }

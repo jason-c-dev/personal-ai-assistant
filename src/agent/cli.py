@@ -765,8 +765,8 @@ class AgentCLI:
                 
                 # Store interaction in memory system if available
                 try:
-                    if hasattr(self.agent, 'session_context') and self.agent.session_context:
-                        await self.agent.session_context.store_interaction(message, response_text)
+                    if hasattr(self.agent, '_store_interaction') and self.agent.memory_manager:
+                        await self.agent._store_interaction(message, response_text, "default")
                 except Exception as memory_error:
                     console.print(f"[yellow]⚠️  Memory storage failed: {memory_error}[/yellow]")
                 
