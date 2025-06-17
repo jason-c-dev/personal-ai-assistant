@@ -503,8 +503,8 @@ You have access to the user's profile, recent conversations, and preferences.
                 
                 # Run memory system validation
                 validation_results = self.memory_manager.validate_memory_system()
-                if not validation_results.get('overall_health', False):
-                    logger.warning(f"Memory system validation issues: {validation_results}")
+                if not validation_results.is_valid:
+                    logger.warning(f"Memory system validation issues: {validation_results.get_summary()}")
                     # Don't fail initialization for minor issues
             
             # Validate MCP clients

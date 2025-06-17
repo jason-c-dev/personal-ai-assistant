@@ -383,22 +383,20 @@ class TestMemoryManager:
         entry = MemoryEntry(content="Valid test memory", importance_score=7, category="test")
         self.memory_manager.create_interaction_memory(entry)
         
-        validation = self.memory_manager.validate_memory_system()
+        validation_result = self.memory_manager.validate_memory_system()
         
-        # Verify structure
-        assert 'valid' in validation
-        assert 'core_memories' in validation
-        assert 'interaction_memories' in validation
-        assert 'system_files' in validation
-        assert 'overall_errors' in validation
+        # Verify it returns a ValidationResult object
+        assert hasattr(validation_result, 'is_valid')
+        assert hasattr(validation_result, 'issues')
+        assert hasattr(validation_result, 'warnings_count')
+        assert hasattr(validation_result, 'errors_count')
+        assert hasattr(validation_result, 'get_summary')
         
         # Should be valid for a fresh system
-        assert validation['valid'] is True
+        assert validation_result.is_valid is True
         
-        # Verify core memories validation
-        assert len(validation['core_memories']) == 5
-        for memory_type, validation_result in validation['core_memories'].items():
-            assert validation_result['valid'] is True
+        # Should have no errors
+        assert validation_result.errors_count == 0
     
     def test_get_recent_interactions(self):
         """Test retrieving recent interactions."""

@@ -702,87 +702,16 @@ class MemoryManager:
         
         return results
     
-    def validate_memory_system(self) -> Dict[str, Any]:
+    def validate_memory_system(self):
         """
-        Validate the entire memory system.
+        Validate the entire memory system using the comprehensive MemoryValidator.
         
         Returns:
-            Dict containing validation results
+            ValidationResult from MemoryValidator
         """
-        validation = {
-            'valid': True,
-            'core_memories': {},
-            'interaction_memories': {'valid': 0, 'invalid': 0, 'errors': []},
-            'system_files': {'valid': 0, 'invalid': 0, 'errors': []},
-            'overall_errors': []
-        }
-        
-        try:
-            # Validate core memories
-            for memory_type, file_path in self.core_files.items():
-                if file_path.exists():
-                    file_validation = MemoryFileOperations.validate_memory_file(file_path)
-                    validation['core_memories'][memory_type] = file_validation
-                    
-                    if not file_validation['valid']:
-                        validation['valid'] = False
-                else:
-                    validation['core_memories'][memory_type] = {
-                        'valid': False,
-                        'errors': ['File does not exist'],
-                        'file_path': str(file_path)
-                    }
-                    validation['valid'] = False
-            
-            # Validate interaction memories (sample)
-            interactions_path = self.base_path / 'interactions'
-            if interactions_path.exists():
-                file_count = 0
-                for month_dir in interactions_path.iterdir():
-                    if not month_dir.is_dir():
-                        continue
-                    
-                    for file_path in month_dir.glob('*.md'):
-                        if file_count >= 100:  # Limit validation to avoid performance issues
-                            break
-                        
-                        try:
-                            file_validation = MemoryFileOperations.validate_memory_file(file_path)
-                            if file_validation['valid']:
-                                validation['interaction_memories']['valid'] += 1
-                            else:
-                                validation['interaction_memories']['invalid'] += 1
-                                validation['interaction_memories']['errors'].append({
-                                    'file': str(file_path),
-                                    'errors': file_validation['errors']
-                                })
-                            
-                            file_count += 1
-                        
-                        except Exception as e:
-                            validation['interaction_memories']['invalid'] += 1
-                            validation['interaction_memories']['errors'].append({
-                                'file': str(file_path),
-                                'errors': [str(e)]
-                            })
-            
-            # Check system configuration
-            system_config_path = self.base_path / 'system' / 'config.json'
-            if system_config_path.exists():
-                try:
-                    with open(system_config_path, 'r', encoding='utf-8') as f:
-                        json.load(f)  # Validate JSON format
-                    validation['system_files']['valid'] += 1
-                except Exception as e:
-                    validation['system_files']['invalid'] += 1
-                    validation['system_files']['errors'].append(f"Invalid system config: {e}")
-                    validation['valid'] = False
-        
-        except Exception as e:
-            validation['overall_errors'].append(str(e))
-            validation['valid'] = False
-        
-        return validation
+        from .validation import MemoryValidator
+        validator = MemoryValidator(self.base_path)
+        return validator.validate_memory_system()
     
     # Utility Methods
     

@@ -1214,14 +1214,15 @@ class AgentCLI:
             console.print("\n🏥 [bold blue]Memory Health Check[/bold blue]")
             
             with console.status("[bold blue]🏥 Running health check...", spinner="dots"):
-                health = self.agent.memory_manager.validate_memory_system()
+                validation_result = self.agent.memory_manager.validate_memory_system()
             
             # Overall health status
-            overall_health = health.get('overall_health', False)
+            overall_health = validation_result.is_valid
             health_color = "green" if overall_health else "red"
             health_status = "✅ Healthy" if overall_health else "❌ Issues Found"
             
             console.print(f"\n🏥 Overall Health: [{health_color}]{health_status}[/{health_color}]")
+            console.print(f"📊 {validation_result.get_summary()}")
             
             # Detailed health information
             health_table = Table(show_header=True, header_style="bold magenta")
@@ -1229,59 +1230,32 @@ class AgentCLI:
             health_table.add_column("Status", style="white", width=15)
             health_table.add_column("Details", style="dim")
             
-            # Directory structure
-            structure_ok = health.get('directory_structure', {}).get('valid', False)
+            # Count issues by type
+            error_count = validation_result.errors_count
+            warning_count = validation_result.warnings_count
+            
             health_table.add_row(
-                "Directory Structure",
-                "✅ Valid" if structure_ok else "❌ Invalid",
-                "Memory directories exist"
+                "Validation Result",
+                "✅ Valid" if validation_result.is_valid else "❌ Invalid",
+                f"Comprehensive memory validation"
             )
             
-            # Core files
-            core_files = health.get('core_files', {})
-            missing_files = core_files.get('missing_files', [])
             health_table.add_row(
-                "Core Files",
-                "✅ Complete" if not missing_files else f"❌ Missing {len(missing_files)}",
-                f"Essential memory files"
-            )
-            
-            # File integrity
-            file_integrity = health.get('file_integrity', {})
-            corrupted_files = file_integrity.get('corrupted_files', [])
-            health_table.add_row(
-                "File Integrity",
-                "✅ Good" if not corrupted_files else f"❌ {len(corrupted_files)} corrupted",
-                "YAML frontmatter validation"
-            )
-            
-            # Permissions
-            permissions = health.get('permissions', {})
-            permission_issues = permissions.get('issues', [])
-            health_table.add_row(
-                "Permissions",
-                "✅ Good" if not permission_issues else f"❌ {len(permission_issues)} issues",
-                "Read/write access"
+                "Issues Found",
+                f"❌ {error_count} errors" if error_count > 0 else "✅ No errors",
+                f"{warning_count} warnings" if warning_count > 0 else "No warnings"
             )
             
             console.print(Panel(health_table, title="🏥 Health Details", border_style=health_color))
             
             # Show issues if any
-            if not overall_health:
-                issues = []
-                if missing_files:
-                    issues.extend([f"Missing: {f}" for f in missing_files])
-                if corrupted_files:
-                    issues.extend([f"Corrupted: {f}" for f in corrupted_files])
-                if permission_issues:
-                    issues.extend([f"Permission: {f}" for f in permission_issues])
-                
-                if issues:
-                    console.print("\n⚠️  [bold yellow]Issues Found:[/bold yellow]")
-                    for issue in issues[:10]:  # Show first 10 issues
-                        console.print(f"  • {issue}")
-                    if len(issues) > 10:
-                        console.print(f"  ... and {len(issues) - 10} more")
+            if validation_result.issues:
+                console.print("\n⚠️  [bold yellow]Validation Issues:[/bold yellow]")
+                for i, issue in enumerate(validation_result.issues[:10]):  # Show first 10 issues
+                    severity_icon = "❌" if issue.severity.value in ["error", "critical"] else "⚠️"
+                    console.print(f"  {severity_icon} {issue}")
+                if len(validation_result.issues) > 10:
+                    console.print(f"  ... and {len(validation_result.issues) - 10} more")
                         
         except Exception as e:
             console.print(f"[red]❌ Error checking memory health: {e}[/red]")
