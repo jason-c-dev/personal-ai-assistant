@@ -115,7 +115,7 @@ class MemoryInitializer:
         frontmatter = {
             'created': timestamp,
             'last_updated': timestamp,
-            'file_type': 'core_memory',
+            'memory_type': self._get_memory_type_from_filename(filename),
             'description': description,
             'importance_score': 10,  # Core files are always high importance
             'category': self._get_category_from_filename(filename)
@@ -128,6 +128,17 @@ class MemoryInitializer:
         content_template = self._get_content_template(filename)
         
         return f"---\n{yaml_content}---\n\n{content_template}"
+    
+    def _get_memory_type_from_filename(self, filename: str) -> str:
+        """Get memory_type based on filename."""
+        memory_type_map = {
+            'user_profile.md': 'user_profile',
+            'active_context.md': 'active_context',
+            'relationship_evolution.md': 'relationship_evolution',
+            'preferences_patterns.md': 'preferences_patterns',
+            'life_context.md': 'life_context'
+        }
+        return memory_type_map.get(filename, 'core')
     
     def _get_category_from_filename(self, filename: str) -> str:
         """Get category based on filename."""

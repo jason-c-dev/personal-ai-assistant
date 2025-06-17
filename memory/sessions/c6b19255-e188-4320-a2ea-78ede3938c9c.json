@@ -1,0 +1,24 @@
+{
+  "session_id": "c6b19255-e188-4320-a2ea-78ede3938c9c",
+  "created_at": "2025-06-17T16:18:12.441085",
+  "last_accessed": "2025-06-17T16:18:26.921765",
+  "title": "Hi, I\"m Jason",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-17T16:18:26.921742",
+      "user_message": "Hi, I\"m Jason",
+      "assistant_response": "Hello Jason! It's nice to meet you. I'd like to update your profile with your name so I can personalize our interactions better. Let me do that for you.I'll save your name to my memory so I can remember it for future conversations.Great! I've saved your name, Jason. Is there anything specific I can help you with today? I'm here to assist with information, calculations, or just to chat. Feel free to let me know if you'd like to share more about yourself so I can provide more personalized assistance.",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 1117.494508,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

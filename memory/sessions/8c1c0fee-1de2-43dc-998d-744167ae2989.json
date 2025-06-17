@@ -1,0 +1,24 @@
+{
+  "session_id": "8c1c0fee-1de2-43dc-998d-744167ae2989",
+  "created_at": "2025-06-17T16:30:12.352622",
+  "last_accessed": "2025-06-17T16:30:56.573906",
+  "title": "Hello, I'm Jason - I'm helping test my CLI by t...",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-17T16:30:56.573895",
+      "user_message": "Hello, I'm Jason - I'm helping test my CLI by typing a message on behalf of my code assistant.",
+      "assistant_response": "Hello Jason! It's nice to meet you. I'll be happy to help you test your CLI. I've made note of your name for future reference.Is there anything specific you'd like to test with your CLI? I'm ready to assist with any commands, calculations, or other interactions you'd like to try out. Feel free to let me know what functionality you're looking to test, and I'll do my best to help.",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 52.140276,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

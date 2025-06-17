@@ -33,7 +33,7 @@ class TestMemoryFileOperations:
         self.sample_frontmatter = {
             'created': '2024-01-01T12:00:00',
             'last_updated': '2024-01-01T12:00:00',
-            'file_type': 'core_memory',
+            'memory_type': 'user_profile',
             'importance_score': 8,
             'category': 'personal'
         }

@@ -96,6 +96,14 @@ class PersonalAssistantAgent:
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
         
+        # Suppress noisy third-party loggers
+        logging.getLogger('httpx').setLevel(logging.WARNING)
+        logging.getLogger('anthropic').setLevel(logging.WARNING)
+        logging.getLogger('openai').setLevel(logging.WARNING)
+        logging.getLogger('boto3').setLevel(logging.WARNING)
+        logging.getLogger('botocore').setLevel(logging.WARNING)
+        logging.getLogger('urllib3').setLevel(logging.WARNING)
+        
     async def initialize(self) -> bool:
         """
         Initialize the agent and all its components with comprehensive session setup.
@@ -732,6 +740,7 @@ You have access to the user's profile, recent conversations, and preferences.
         Returns:
             Assistant's response
         """
+
         if not self.is_initialized:
             raise RuntimeError("Agent not initialized. Call initialize() first.")
         
@@ -751,6 +760,9 @@ You have access to the user's profile, recent conversations, and preferences.
             # Extract text from response - handle various formats
             response_text = self._extract_response_text(response)
             
+            # WORKAROUND: Remove duplicated content if present
+            response_text = self._deduplicate_response(response_text)
+            
             # Store interaction in memory
             if self.memory_manager and self.config.enable_conversation_logging:
                 await self._store_interaction(message, response_text, user_id)
@@ -766,75 +778,140 @@ You have access to the user's profile, recent conversations, and preferences.
     
     async def _process_with_mcp_context(self, message: str) -> str:
         """Process message using MCP context managers as required by Strands."""
-        # We need to gather MCP tools within context managers
-        all_mcp_tools = []
-        
-        # Collect tools from all MCP clients using context managers
-        for i, client in enumerate(self.mcp_clients):
-            server_name = self.mcp_server_names[i] if i < len(self.mcp_server_names) else f"server_{i}"
-            
-            try:
-                # This is the proper Strands pattern - using async context manager
-                async with client:
-                    tools = await client.list_tools()
-                    
-                    # Add namespace prefix to tool names to avoid conflicts
-                    for tool in tools:
-                        if hasattr(tool, 'name'):
-                            # Add server prefix to tool name for uniqueness
-                            original_name = tool.name
-                            tool.name = f"{server_name}_{original_name}"
-                            
-                            # Update description to include server source
-                            if hasattr(tool, 'description'):
-                                tool.description = f"[{server_name}] {tool.description}"
-                            
-                            logger.debug(f"Namespaced tool: {original_name} -> {tool.name}")
-                    
-                    all_mcp_tools.extend(tools)
-                    logger.info(f"✅ Discovered {len(tools)} tools from {server_name} server")
-                
-            except Exception as e:
-                logger.error(f"❌ Error discovering tools from {server_name} server: {e}")
-                # Continue with other servers instead of failing completely
-                continue
-        
-        # Create a new agent with all tools for this conversation
-        if all_mcp_tools:
-            current_tools = []
-            
-            # Add built-in tools
-            if self.config.enable_builtin_tools:
-                current_tools.extend([calculator, current_time])
-            
-            # Add memory tools  
-            if self.memory_manager:
-                current_tools.extend(self._create_memory_tools())
-            
-            # Add MCP tools
-            current_tools.extend(all_mcp_tools)
-            
-            # Create temporary agent with all tools
-            enhanced_agent = Agent(
-                model=self._create_model(),
-                tools=current_tools,
-                system_prompt=self._create_enhanced_system_prompt()
-            )
-            
-            logger.info(f"Created enhanced agent with {len(current_tools)} tools ({len(all_mcp_tools)} from MCP)")
-            
-            # Process with enhanced agent
-            return enhanced_agent(message)
-        else:
-            # Fall back to agent without MCP tools
+        # Collect all MCP clients for multi-server context management
+        if not self.mcp_clients:
             logger.warning("No MCP tools available, using base agent")
             return self.agent(message)
+        
+        try:
+            # Use synchronous context managers for all MCP clients
+            # Strands MCPClient uses __enter__/__exit__, not async context managers
+            all_mcp_tools = []
+            
+            # Create a list to track entered context managers for cleanup
+            entered_contexts = []
+            
+            try:
+                # Enter all MCP client contexts using synchronous context managers
+                for i, client in enumerate(self.mcp_clients):
+                    server_name = self.mcp_server_names[i] if i < len(self.mcp_server_names) else f"server_{i}"
+                    
+                    try:
+                        # Use synchronous context manager
+                        client.__enter__()
+                        entered_contexts.append(client)
+                        
+                        # Discover tools from this client
+                        tools = client.list_tools_sync()
+                        
+                        # Add namespace prefix to tool names to avoid conflicts
+                        for tool in tools:
+                            if hasattr(tool, 'name'):
+                                # Add server prefix to tool name for uniqueness
+                                original_name = tool.name
+                                tool.name = f"{server_name}_{original_name}"
+                                
+                                # Update description to include server source
+                                if hasattr(tool, 'description'):
+                                    tool.description = f"[{server_name}] {tool.description}"
+                                
+                                logger.debug(f"Namespaced tool: {original_name} -> {tool.name}")
+                        
+                        all_mcp_tools.extend(tools)
+                        logger.info(f"✅ Discovered {len(tools)} tools from {server_name} server")
+                    
+                    except Exception as e:
+                        logger.error(f"❌ Error discovering tools from {server_name} server: {e}")
+                        continue
+                
+                # Create agent with all tools and process message within context
+                if all_mcp_tools:
+                    current_tools = []
+                    
+                    # Add built-in tools
+                    if self.config.enable_builtin_tools:
+                        current_tools.extend([calculator, current_time])
+                    
+                    # Add memory tools  
+                    if self.memory_manager:
+                        current_tools.extend(self._create_memory_tools())
+                    
+                    # Add MCP tools
+                    current_tools.extend(all_mcp_tools)
+                    
+                    # Create temporary agent with all tools
+                    enhanced_agent = Agent(
+                        model=self._create_model(),
+                        tools=current_tools,
+                        system_prompt=self._create_enhanced_system_prompt()
+                    )
+                    
+                    logger.info(f"Created enhanced agent with {len(current_tools)} tools ({len(all_mcp_tools)} from MCP)")
+                    
+                    # Process with enhanced agent WITHIN the context
+                    return enhanced_agent(message)
+                else:
+                    # No MCP tools discovered, use base agent
+                    logger.warning("No MCP tools discovered, using base agent")
+                    return self.agent(message)
+            
+            finally:
+                # Exit all context managers in reverse order
+                for client in reversed(entered_contexts):
+                    try:
+                        client.__exit__(None, None, None)
+                    except Exception as e:
+                        logger.error(f"Error exiting MCP client: {e}")
+            
+        except Exception as e:
+            logger.error(f"Error in MCP context processing: {e}")
+            # Fall back to base agent
+            return self.agent(message)
     
+    def _deduplicate_response(self, text: str) -> str:
+        """Remove duplicated content from response text."""
+        if not text or len(text) < 20:
+            return text
+        
+        # Split text in half and check if the halves are similar/identical
+        mid_point = len(text) // 2
+        first_half = text[:mid_point].strip()
+        second_half = text[mid_point:].strip()
+        
+        # If the second half starts with the same content as the first half, remove it
+        if len(first_half) > 10 and second_half.startswith(first_half[:50]):
+            logger.info("Detected and removed duplicated response content")
+            return first_half
+        
+        # Check for word-level duplication (common pattern we saw)
+        words = text.split()
+        if len(words) > 10:
+            # Look for repeating patterns in the middle
+            for i in range(len(words) // 3, len(words) * 2 // 3):
+                if i + 5 < len(words):
+                    phrase = ' '.join(words[i:i+5])
+                    remaining_text = ' '.join(words[i+5:])
+                    if remaining_text.startswith(phrase):
+                        # Found duplication, keep only up to the first occurrence
+                        logger.info("Detected and removed duplicated response content (word-level)")
+                        return ' '.join(words[:i+5])
+        
+        return text
+
     def _extract_response_text(self, response) -> str:
         """Extract text from various response formats."""
         # Handle AgentResult objects from Strands first
         if hasattr(response, '__class__') and 'AgentResult' in str(type(response)):
-            # AgentResult object - convert to string
+            # Extract only the final message content, not the entire reasoning chain
+            if hasattr(response, 'message') and isinstance(response.message, dict):
+                content = response.message.get('content', [])
+                if content and isinstance(content, list) and len(content) > 0:
+                    first_content = content[0]
+                    if isinstance(first_content, dict) and 'text' in first_content:
+                        extracted_text = first_content['text']
+                        return extracted_text
+            
+            # Fallback: convert to string (will include reasoning chain)
             return str(response)
         elif isinstance(response, list):
             # Handle list response format (common with Strands)
@@ -964,14 +1041,55 @@ You have access to the user's profile, recent conversations, and preferences.
             
             # Stream response from Strands agent
             full_response = ""
+            last_chunk = ""  # Track last chunk to avoid immediate duplication
+            
             async for chunk in self.agent.stream_async(enhanced_message):
-                if "data" in chunk:
-                    text_chunk = chunk["data"]
-                    full_response += text_chunk
-                    yield text_chunk
+                text_chunk = None
+                
+                # Handle different chunk formats
+                if isinstance(chunk, dict):
+                    # Handle Anthropic/Claude streaming event format ONLY
+                    if 'event' in chunk and 'contentBlockDelta' in chunk['event']:
+                        delta = chunk['event']['contentBlockDelta'].get('delta', {})
+                        if 'text' in delta:
+                            text_chunk = delta['text']
+                    # Skip all other dictionary formats to avoid duplication
+                    else:
+                        continue
                 elif isinstance(chunk, str):
-                    full_response += chunk
-                    yield chunk
+                    text_chunk = chunk
+                elif hasattr(chunk, 'content'):
+                    text_chunk = str(chunk.content)
+                else:
+                    # Skip unknown formats
+                    continue
+                
+                # Process text chunks with real-time deduplication
+                if text_chunk and text_chunk.strip():
+                    # Skip if this chunk is identical to the last one (immediate duplication)
+                    if text_chunk == last_chunk:
+                        continue
+                    
+                    # Add to full response and check for patterns
+                    potential_response = full_response + text_chunk
+                    
+                    # Simple pattern detection: if the text chunk would create obvious duplication
+                    # Check if adding this chunk would create repeated words at the boundary
+                    if full_response:
+                        response_words = full_response.split()
+                        chunk_words = text_chunk.split()
+                        
+                        # Skip chunk if it starts with the same words that full_response ends with
+                        if (len(response_words) >= 2 and len(chunk_words) >= 2 and
+                            response_words[-2:] == chunk_words[:2]):
+                            continue
+                    
+                    full_response += text_chunk
+                    last_chunk = text_chunk
+                    yield text_chunk
+            
+            # Final deduplication as safety net
+            full_response = self._deduplicate_response(full_response)
             
             # Store interaction in memory after streaming is complete
             if self.memory_manager and self.config.enable_conversation_logging:

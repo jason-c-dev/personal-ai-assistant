@@ -1,0 +1,24 @@
+{
+  "session_id": "b4d30c99-a7df-4a89-99a2-28e3fbf02f80",
+  "created_at": "2025-06-17T16:31:54.734508",
+  "last_accessed": "2025-06-17T16:32:27.808713",
+  "title": "Hi, It's Jason again - I'm testing, on behalf o...",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-17T16:32:27.808704",
+      "user_message": "Hi, It's Jason again - I'm testing, on behalf of my coding asistant, to see if duplication happens",
+      "assistant_response": "Hello Jason! It's nice to see you again. I'll help you test for any duplication issues on behalf of your coding assistant.\n\nLet me first check if I have any stored memories about you from previous interactions.I don't see any previous memories about you or your coding assistant in my system. Let me store this interaction so I can track our conversation history.I've recorded this interaction. Is there a specific type of duplication issue you're concerned about with your coding assistant? I'd be happy to help you test further or provide any additional information about how my memory system works to avoid duplication problems.",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 45.256912,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

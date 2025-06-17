@@ -739,13 +739,14 @@ class AgentCLI:
                 response_text = ""
                 start_time = datetime.now()
                 
-                # Check agent availability before streaming
-                if not hasattr(self.agent, 'stream_response'):
-                    raise MemorySystemUnavailableError("Agent streaming not available")
+                # TEMPORARY: Use non-streaming mode to avoid duplication issues
+                # Check agent availability
+                if not hasattr(self.agent, 'process_message'):
+                    raise MemorySystemUnavailableError("Agent not available")
                 
-                async for chunk in self.agent.stream_response(message):
-                    response_text += chunk
-                    console.print(chunk, end="", highlight=False)
+                # Get full response (non-streaming)
+                response_text = await self.agent.process_message(message)
+                console.print(response_text, highlight=False)
                 
                 console.print()  # New line after response
                 

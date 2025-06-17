@@ -461,7 +461,7 @@ class TestMemoryEntry:
             content="Test content",
             importance_score=7,
             category="test",
-            file_type="interaction",
+            memory_type="interaction",
             tags=["tag1", "tag2"],
             metadata={"key": "value"}
         )
@@ -469,7 +469,7 @@ class TestMemoryEntry:
         assert entry.content == "Test content"
         assert entry.importance_score == 7
         assert entry.category == "test"
-        assert entry.file_type == "interaction"
+        assert entry.memory_type == "interaction"
         assert entry.tags == ["tag1", "tag2"]
         assert entry.metadata == {"key": "value"}
     
@@ -481,7 +481,7 @@ class TestMemoryEntry:
             category="test"
         )
         
-        assert entry.file_type == "interaction"
+        assert entry.memory_type == "interaction"
         assert entry.tags == []
         assert entry.metadata == {}
 

@@ -1,0 +1,24 @@
+{
+  "session_id": "21d53187-f676-4da8-bf4f-22b664724e61",
+  "created_at": "2025-06-17T16:48:46.304107",
+  "last_accessed": "2025-06-17T16:48:55.772309",
+  "title": "when is my wife's birthday?",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-17T16:48:55.772297",
+      "user_message": "when is my wife's birthday?",
+      "assistant_response": "I don't have any information about your wife's birthday in my memory. To provide you with that information, I'd need you to share those details with me first.\n\nWould you like me to store your wife's birthday in my memory so I can remind you of it in the future? If so, please let me know the date, and I'll save it for you.",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 188.185326,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

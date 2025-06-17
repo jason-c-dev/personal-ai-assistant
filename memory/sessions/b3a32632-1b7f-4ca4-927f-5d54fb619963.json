@@ -1,0 +1,24 @@
+{
+  "session_id": "b3a32632-1b7f-4ca4-927f-5d54fb619963",
+  "created_at": "2025-06-17T16:33:05.291283",
+  "last_accessed": "2025-06-17T16:33:21.816959",
+  "title": "one more time, are you going to duplicate?",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-17T16:33:21.816949",
+      "user_message": "one more time, are you going to duplicate?",
+      "assistant_response": "I can confirm that I'm responding to you at 2025-06-17T23:33:19.049617+00:00, and I will not duplicate my responses. Each response I provide is generated based on your current question and our conversation context. \n\nIs there something specific you'd like assistance with today? I'm here to help with any questions or tasks you might have.",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 23.103305,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

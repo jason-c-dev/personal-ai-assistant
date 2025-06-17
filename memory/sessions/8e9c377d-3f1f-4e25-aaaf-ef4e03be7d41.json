@@ -1,0 +1,31 @@
+{
+  "session_id": "8e9c377d-3f1f-4e25-aaaf-ef4e03be7d41",
+  "created_at": "2025-06-17T15:54:39.286659",
+  "last_accessed": "2025-06-17T15:55:03.341696",
+  "title": "hi, welcome back!",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-17T15:54:52.111249",
+      "user_message": "hi, welcome back!",
+      "assistant_response": "Hello! It's great to be back. How can I assist you today? Is there anything specific you'd like to discuss or any questions you have? I'm here to help with information, calculations, or just to chat.",
+      "turn_number": 1,
+      "metadata": {}
+    },
+    {
+      "timestamp": "2025-06-17T15:55:03.341681",
+      "user_message": "what's my name?",
+      "assistant_response": "I don't seem to have your name stored in my memory yet. Looking at your profile information and our previous interactions, I don't see that you've shared your name with me before.I don't have your name recorded in my system yet. Would you like to share your name with me? If you do, I can store it in my memory for future reference.",
+      "turn_number": 2,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 2,
+  "session_duration_seconds": 38.098445,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

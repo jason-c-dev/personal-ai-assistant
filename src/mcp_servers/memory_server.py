@@ -24,6 +24,10 @@ from memory.file_operations import MemoryFileOperations
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+
+# Suppress noisy third-party loggers
+logging.getLogger('httpx').setLevel(logging.WARNING)
+logging.getLogger('anthropic').setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # Global MCP server instance
@@ -203,7 +207,7 @@ def update_memory(content: str, memory_type: str = "conversation",
             content=content,
             importance_score=5,  # Default importance
             category=memory_type,
-            file_type="interaction",
+                            memory_type="interaction",
             tags=tags or [],
             metadata=metadata or {}
         )

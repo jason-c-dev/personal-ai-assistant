@@ -1,0 +1,24 @@
+{
+  "session_id": "a90f0c63-c14e-461c-914e-6bf4493d9056",
+  "created_at": "2025-06-17T15:57:48.037923",
+  "last_accessed": "2025-06-17T15:59:28.005105",
+  "title": "Hi, I'm Jason",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-17T15:59:28.005094",
+      "user_message": "Hi, I'm Jason",
+      "assistant_response": "Hello Jason! It's nice to meet you. I'm your Personal AI Assistant, designed to help you with various tasks, answer questions, and provide assistance as needed. I can remember our conversations and learn your preferences over time to give you more personalized support.\n\nI'll store your name in my memory system so I can address you properly in our future interactions.Is there anything specific I can help you with today, Jason? I can assist with calculations, provide information, remember important details for you, or simply chat.",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 141.110033,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

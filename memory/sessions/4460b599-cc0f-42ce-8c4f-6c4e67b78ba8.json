@@ -1,0 +1,24 @@
+{
+  "session_id": "4460b599-cc0f-42ce-8c4f-6c4e67b78ba8",
+  "created_at": "2025-06-17T15:55:22.504388",
+  "last_accessed": "2025-06-17T15:55:37.122729",
+  "title": "Hi, I'm Jason - what's yoru name?",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-17T15:55:37.122718",
+      "user_message": "Hi, I'm Jason - what's yoru name?",
+      "assistant_response": "Hello Jason! It's nice to meet you. I'm your Personal AI Assistant. I don't have a specific name like humans do - I'm simply designed to assist you with various tasks and provide helpful information. \n\nI'll remember that your name is Jason, which will help me personalize our interactions going forward. Is there anything specific you'd like to know about me or something I can help you with today?",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 141.331159,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

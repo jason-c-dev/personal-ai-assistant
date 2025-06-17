@@ -360,7 +360,7 @@ class MemoryFileOperations:
         content: str,
         importance_score: int,
         category: str = 'general',
-        file_type: str = 'interaction',
+        memory_type: str = 'interaction',
         additional_metadata: Optional[Dict[str, Any]] = None
     ) -> Tuple[Dict[str, Any], str]:
         """
@@ -370,7 +370,7 @@ class MemoryFileOperations:
             content: The memory content
             importance_score: Importance score (1-10)
             category: Category of the memory
-            file_type: Type of memory file
+            memory_type: Type of memory file
             additional_metadata: Additional frontmatter fields
             
         Returns:
@@ -381,7 +381,7 @@ class MemoryFileOperations:
         frontmatter = {
             'created': timestamp,
             'last_updated': timestamp,
-            'file_type': file_type,
+            'memory_type': memory_type,
             'importance_score': importance_score,
             'category': category
         }

@@ -1,0 +1,24 @@
+{
+  "session_id": "bd226d4f-502a-469b-9761-0ab9101c057e",
+  "created_at": "2025-06-17T16:36:57.194208",
+  "last_accessed": "2025-06-17T16:37:12.179888",
+  "title": "My wife's birthday is July 1st",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-17T16:37:12.179874",
+      "user_message": "My wife's birthday is July 1st",
+      "assistant_response": "I've saved this information about your wife's birthday on July 1st. This will help me remember important dates for you. Is there anything else you'd like me to remember about preferences for her birthday, such as gift ideas or celebration traditions?",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 36.726482,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

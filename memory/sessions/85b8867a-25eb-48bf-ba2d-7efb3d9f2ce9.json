@@ -1,0 +1,31 @@
+{
+  "session_id": "85b8867a-25eb-48bf-ba2d-7efb3d9f2ce9",
+  "created_at": "2025-06-17T16:43:03.536666",
+  "last_accessed": "2025-06-17T16:47:42.026233",
+  "title": "hi, I'm jason",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-17T16:46:39.762993",
+      "user_message": "hi, I'm jason",
+      "assistant_response": "Thank you for introducing yourself, Jason! How can I assist you today? Feel free to ask me any questions or let me know if there's anything specific you'd like help with.",
+      "turn_number": 1,
+      "metadata": {}
+    },
+    {
+      "timestamp": "2025-06-17T16:47:42.026223",
+      "user_message": "my wife's birthday is July 1st",
+      "assistant_response": "I've saved that information. July 1st is your wife's birthday. Is there anything specific you'd like to plan for her birthday, or any other way I can help you with this information?",
+      "turn_number": 2,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 2,
+  "session_duration_seconds": 338.565789,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

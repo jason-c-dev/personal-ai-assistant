@@ -65,7 +65,7 @@ class MemoryEntry:
     content: str
     importance_score: int
     category: str
-    file_type: str = "interaction"
+    memory_type: str = "interaction"
     tags: List[str] = None
     metadata: Dict[str, Any] = None
     
@@ -243,7 +243,7 @@ class MemoryManager:
             entry.content,
             entry.importance_score,
             entry.category,
-            entry.file_type,
+            entry.memory_type,
             additional_metadata
         )
         

@@ -263,19 +263,30 @@ class MemoryValidator:
             ))
             return result
         
-        # Find all markdown files
-        md_files = list(directory_path.rglob("*.md"))
+        # Find all markdown files, excluding documentation files
+        all_md_files = list(directory_path.rglob("*.md"))
+        md_files = [f for f in all_md_files if not self._is_documentation_file(f)]
         
         if not md_files:
-            result.add_issue(ValidationIssue(
-                severity=ValidationSeverity.WARNING,
-                error_type=ErrorType.MISSING_DATA,
-                message="No memory files found in directory",
-                file_path=directory_path
-            ))
+            # Check if we excluded some files
+            excluded_count = len(all_md_files) - len(md_files)
+            if excluded_count > 0:
+                result.add_issue(ValidationIssue(
+                    severity=ValidationSeverity.INFO,
+                    error_type=ErrorType.VALIDATION_ERROR,
+                    message=f"Found {excluded_count} documentation file(s), no memory files in directory",
+                    file_path=directory_path
+                ))
+            else:
+                result.add_issue(ValidationIssue(
+                    severity=ValidationSeverity.WARNING,
+                    error_type=ErrorType.MISSING_DATA,
+                    message="No memory files found in directory",
+                    file_path=directory_path
+                ))
             return result
         
-        # Validate each file
+        # Validate each memory file
         for file_path in md_files:
             file_result = self.validate_memory_file(file_path)
             result.issues.extend(file_result.issues)
@@ -636,6 +647,19 @@ class MemoryValidator:
     def _is_system_file(self, file_path: Path) -> bool:
         """Check if a file is a system file."""
         return 'system' in file_path.parts
+    
+    def _is_documentation_file(self, file_path: Path) -> bool:
+        """Check if a file is a documentation file that should be excluded from validation."""
+        # Exclude README files and other documentation
+        filename = file_path.name.lower()
+        return (
+            filename == 'readme.md' or
+            filename.startswith('readme') or
+            filename.startswith('doc') or
+            filename.startswith('help') or
+            filename.endswith('-docs.md') or
+            filename.endswith('-documentation.md')
+        )
     
     def _validate_iso_datetime(self, value: str) -> bool:
         """Validate ISO datetime format."""
