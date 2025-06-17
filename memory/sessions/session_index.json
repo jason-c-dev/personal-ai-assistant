@@ -37,5 +37,18 @@
     "tags": [],
     "bookmarked": false,
     "has_context": false
+  },
+  "de502212-51f6-4e25-b584-663ef639909b": {
+    "session_id": "de502212-51f6-4e25-b584-663ef639909b",
+    "title": "Hello! Can you tell me what model you're using?",
+    "description": "",
+    "created_at": "2025-06-16T17:55:14.583824",
+    "last_accessed": "2025-06-16T17:55:18.404493",
+    "total_turns": 1,
+    "total_messages": 1,
+    "duration_minutes": 0.1,
+    "tags": [],
+    "bookmarked": false,
+    "has_context": false
   }
 }

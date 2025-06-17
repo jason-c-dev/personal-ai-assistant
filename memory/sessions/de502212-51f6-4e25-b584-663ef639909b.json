@@ -1,0 +1,24 @@
+{
+  "session_id": "de502212-51f6-4e25-b584-663ef639909b",
+  "created_at": "2025-06-16T17:55:14.583824",
+  "last_accessed": "2025-06-16T17:55:18.404493",
+  "title": "Hello! Can you tell me what model you're using?",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-16T17:55:18.404482",
+      "user_message": "Hello! Can you tell me what model you're using?",
+      "assistant_response": "Hello! I'm an AI Assistant powered by a large language model. I don't have specific information about which exact model I'm using, as this information isn't directly accessible to me.\n\nI'm designed to assist you with various tasks through conversation, and I have access to tools like:\n- A calculator for mathematical operations\n- A current time function\n- Memory storage and retrieval capabilities\n\nIs there something specific you'd like help with today? I'd be happy to assist you with calculations, information storage, or answer questions to the best of my abilities.",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 5.408352,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

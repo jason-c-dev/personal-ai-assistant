@@ -21,8 +21,8 @@ class TestModelConfig:
         """Test default model configuration values"""
         config = ModelConfig()
         
-        assert config.provider == "bedrock"
-        assert config.model_id == "anthropic.claude-3-5-sonnet-20241022-v2:0"
+        assert config.provider == "anthropic"  # Updated to match new default
+        assert config.model_id == "claude-3-7-sonnet-latest"
         assert config.temperature == 0.7
         assert config.max_tokens == 4000
         assert config.streaming is True
@@ -199,8 +199,8 @@ class TestAgentConfig:
         config = AgentConfig.from_env()
         
         # Should use defaults when no environment variables are set
-        assert config.model.provider == "bedrock"
-        assert config.model.model_id == "anthropic.claude-3-5-sonnet-20241022-v2:0"
+        assert config.model.provider == "anthropic"  # Updated to match new default
+        assert config.model.model_id == "claude-3-7-sonnet-latest"
         assert config.memory.memory_base_path == Path("memory")
     
     def test_to_dict(self):

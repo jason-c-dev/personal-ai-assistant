@@ -157,8 +157,8 @@ class StartupValidator:
                 # Set optimal Anthropic model if not already set
                 if not any('AI_MODEL_ID=' in line and not line.strip().startswith('#') for line in lines):
                     lines.append('')
-                    lines.append('# Auto-configured for optimal Anthropic experience')
-                    lines.append('AI_MODEL_ID=claude-3-5-sonnet-20241022-v2:0')
+                    lines.append('# Auto-configured for optimal Anthropic experience (Claude 3.7)')
+                    lines.append('AI_MODEL_ID=claude-3-7-sonnet-latest')
                     lines.append('AI_MODEL_TEMPERATURE=0.7')
                     modified = True
                     

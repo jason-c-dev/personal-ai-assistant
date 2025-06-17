@@ -535,28 +535,26 @@ You have access to the user's profile, recent conversations, and preferences.
             return False
     
     def _create_model(self):
-        """Create and configure the AI model based on provider."""
+        """Create and configure the AI model based on provider with intelligent defaults."""
+        # Apply provider-specific defaults if model_id is not explicitly set
+        model_id = self._get_default_model_id()
+        
         if self.config.model.provider == "anthropic":
             return AnthropicModel(
-                model_id=self.config.model.model_id,
+                model_id=model_id,
                 max_tokens=self.config.model.max_tokens,
                 params={
                     "temperature": self.config.model.temperature,
                 }
             )
         elif self.config.model.provider == "bedrock":
-            return BedrockModel(
-                model_id=self.config.model.model_id,
-                region_name=self.config.model.region_name,
-                temperature=self.config.model.temperature,
-                max_tokens=self.config.model.max_tokens,
-                streaming=self.config.model.streaming
-            )
+            # Try Claude 3.7 first, fall back gracefully if not available
+            return self._create_bedrock_model_with_fallback(model_id)
         elif self.config.model.provider == "openai":
             try:
                 from strands.models.openai import OpenAIModel
                 return OpenAIModel(
-                    model_id=self.config.model.model_id,
+                    model_id=model_id,
                     max_tokens=self.config.model.max_tokens,
                     params={
                         "temperature": self.config.model.temperature,
@@ -566,6 +564,68 @@ You have access to the user's profile, recent conversations, and preferences.
                 raise ValueError("OpenAI provider requested but strands OpenAI model not available. Install with: pip install 'strands-agents[openai]'")
         else:
             raise ValueError(f"Unsupported model provider: {self.config.model.provider}. Supported providers: anthropic, bedrock, openai")
+    
+    def _get_default_model_id(self) -> str:
+        """Get appropriate default model ID based on provider."""
+        # Check if model_id is explicitly set to something other than the old default
+        current_model = self.config.model.model_id
+        
+        # If it's set to the old default or generic default, apply new provider-specific defaults
+        old_defaults = [
+            "claude-3-5-sonnet-20241022-v2:0",  # Old Anthropic default
+            "anthropic.claude-3-5-sonnet-20241022-v2:0",  # Old Bedrock default
+            "gpt-4-turbo-preview"  # Old OpenAI default (keep this)
+        ]
+        
+        # Apply provider-specific Claude 3.7 defaults
+        if current_model in old_defaults or current_model == "claude-3-7-sonnet-latest":
+            if self.config.model.provider == "anthropic":
+                logger.info("🆕 Applying Claude 3.7 default for Anthropic provider")
+                return "claude-3-7-sonnet-latest"
+            elif self.config.model.provider == "bedrock":
+                logger.info("🆕 Applying Claude 3.7 default for Bedrock provider")
+                return "anthropic.claude-3-7-sonnet-20250219-v1:0"
+            elif self.config.model.provider == "openai":
+                # Keep existing OpenAI default for now
+                return "gpt-4-turbo-preview"
+        
+        # Return the explicitly configured model
+        return current_model
+    
+    def _create_bedrock_model_with_fallback(self, model_id: str) -> BedrockModel:
+        """Create Bedrock model with graceful fallback if Claude 3.7 not available."""
+        try:
+            # Try the requested model first
+            model = BedrockModel(
+                model_id=model_id,
+                region_name=self.config.model.region_name,
+                temperature=self.config.model.temperature,
+                max_tokens=self.config.model.max_tokens,
+                streaming=self.config.model.streaming
+            )
+            
+            # Test if the model is available (this might fail fast)
+            logger.info(f"✅ Using Bedrock model: {model_id}")
+            return model
+            
+        except Exception as e:
+            # Check if it's the Claude 3.7 model that failed
+            if "claude-3-7" in model_id:
+                logger.warning(f"⚠️ Claude 3.7 model not available in region {self.config.model.region_name}: {e}")
+                logger.info("🔄 Falling back to Claude 3.5 Sonnet for Bedrock...")
+                
+                # Fall back to Claude 3.5
+                fallback_model = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+                return BedrockModel(
+                    model_id=fallback_model,
+                    region_name=self.config.model.region_name,
+                    temperature=self.config.model.temperature,
+                    max_tokens=self.config.model.max_tokens,
+                    streaming=self.config.model.streaming
+                )
+            else:
+                # Re-raise if it's not a Claude 3.7 availability issue
+                raise e
     
 
     
