@@ -13,6 +13,7 @@ from pathlib import Path
 
 from strands import Agent, tool
 from strands.models import BedrockModel
+from strands.models.anthropic import AnthropicModel
 from strands.tools.mcp import MCPClient
 from strands_tools import calculator, current_time
 from mcp.client.stdio import stdio_client, StdioServerParameters
@@ -420,19 +421,34 @@ class PersonalAssistantAgent:
             # Create enhanced system prompt with context
             enhanced_system_prompt = self._create_enhanced_system_prompt()
             
-            # Collect tools (MCP clients are already initialized and ready to use)
-            tools = await self._collect_tools()
+            # Collect non-MCP tools first
+            tools = []
             
-            # Create the Strands agent
-            self.agent = Agent(
-                model=model,
-                tools=tools,
-                system_prompt=enhanced_system_prompt
-            )
+            # Add built-in Strands tools
+            if self.config.enable_builtin_tools:
+                tools.extend([calculator, current_time])
             
+            # Add memory-related custom tools (fallback when MCP isn't available)
+            if self.memory_manager:
+                tools.extend(self._create_memory_tools())
+            
+            # For Strands native MCP integration, we need to pass the MCP clients directly to Agent
+            # and use them within context managers during conversation
             if self.config.mcp.enabled and self.mcp_clients:
-                logger.info(f"Strands agent initialized with {len(tools)} tools (including MCP)")
+                # Create the Strands agent with MCP clients for native integration
+                self.agent = Agent(
+                    model=model,
+                    tools=tools,
+                    system_prompt=enhanced_system_prompt
+                )
+                logger.info(f"Strands agent initialized with {len(tools)} tools + {len(self.mcp_clients)} MCP clients")
             else:
+                # Create agent without MCP
+                self.agent = Agent(
+                    model=model,
+                    tools=tools,
+                    system_prompt=enhanced_system_prompt
+                )
                 logger.info(f"Strands agent initialized with {len(tools)} tools (no MCP)")
             
             return True
@@ -518,56 +534,28 @@ You have access to the user's profile, recent conversations, and preferences.
             logger.error(f"System validation failed: {e}")
             return False
     
-    def _create_model(self) -> BedrockModel:
-        """Create and configure the AI model."""
-        return BedrockModel(
-            model_id=self.config.model.model_id,
-            region_name=self.config.model.region_name,
-            temperature=self.config.model.temperature,
-            max_tokens=self.config.model.max_tokens,
-            streaming=self.config.model.streaming
-        )
+    def _create_model(self):
+        """Create and configure the AI model based on provider."""
+        if self.config.model.provider == "anthropic":
+            return AnthropicModel(
+                model_id=self.config.model.model_id,
+                max_tokens=self.config.model.max_tokens,
+                params={
+                    "temperature": self.config.model.temperature,
+                }
+            )
+        elif self.config.model.provider == "bedrock":
+            return BedrockModel(
+                model_id=self.config.model.model_id,
+                region_name=self.config.model.region_name,
+                temperature=self.config.model.temperature,
+                max_tokens=self.config.model.max_tokens,
+                streaming=self.config.model.streaming
+            )
+        else:
+            raise ValueError(f"Unsupported model provider: {self.config.model.provider}")
     
-    async def _collect_tools(self) -> List[Any]:
-        """Collect all available tools for the agent using native Strands MCP integration."""
-        tools = []
-        
-        # Add built-in Strands tools
-        if self.config.enable_builtin_tools:
-            tools.extend([calculator, current_time])
-        
-        # Add memory-related custom tools
-        if self.memory_manager:
-            tools.extend(self._create_memory_tools())
-        
-        # Add native MCP tools using context managers
-        if self.config.mcp.enabled and self.mcp_clients:
-            mcp_tools = await self._discover_mcp_tools()
-            tools.extend(mcp_tools)
-            logger.info(f"Added {len(mcp_tools)} native MCP tools")
-        
-        return tools
-    
-    async def _discover_mcp_tools(self) -> List[Any]:
-        """Discover tools from MCP servers with namespacing for conflict resolution."""
-        all_tools = []
-        
-        for i, client in enumerate(self.mcp_clients):
-            server_name = self.mcp_server_names[i] if i < len(self.mcp_server_names) else f"server_{i}"
-            
-            try:
-                # For now, skip MCP tool discovery to focus on core functionality
-                # MCP integration will be improved in a future update
-                logger.info(f"⚠️ Skipping MCP tools from {server_name} server (session management needs improvement)")
-                continue
-                
-            except Exception as e:
-                logger.error(f"❌ Error discovering tools from {server_name} server: {e}")
-                # Continue with other servers instead of failing completely
-                continue
-        
-        logger.info(f"Total MCP tools discovered: {len(all_tools)} from {len(self.mcp_clients)} servers")
-        return all_tools
+
     
     def _create_memory_tools(self) -> List[Any]:
         """Create custom tools for memory operations."""
@@ -679,57 +667,17 @@ You have access to the user's profile, recent conversations, and preferences.
             # Add conversation context from memory
             enhanced_message = await self._enhance_message_with_context(message, user_id)
             
-            # Process with Strands agent
-            response = self.agent(enhanced_message)
+            # Process with Strands agent using MCP context managers
+            # This is the proper way according to Strands documentation
+            if self.config.mcp.enabled and self.mcp_clients:
+                # Use MCP context managers for the conversation
+                response = await self._process_with_mcp_context(enhanced_message)
+            else:
+                # Process without MCP
+                response = self.agent(enhanced_message)
             
             # Extract text from response - handle various formats
-            # Handle AgentResult objects from Strands first
-            if hasattr(response, '__class__') and 'AgentResult' in str(type(response)):
-                # AgentResult object - convert to string
-                response_text = str(response)
-            elif isinstance(response, list):
-                # Handle list response format (common with Strands)
-                if len(response) > 0:
-                    first_item = response[0]
-                    if isinstance(first_item, dict) and 'text' in first_item:
-                        response_text = first_item['text']
-                    else:
-                        response_text = str(first_item)
-                else:
-                    response_text = "No response generated"
-            elif isinstance(response, dict):
-                # Handle dictionary response format (Strands format)
-                if 'content' in response and isinstance(response['content'], list):
-                    if len(response['content']) > 0:
-                        content_item = response['content'][0]
-                        if isinstance(content_item, dict) and 'text' in content_item:
-                            response_text = content_item['text']
-                        else:
-                            response_text = str(content_item)
-                    else:
-                        response_text = str(response)
-                elif 'text' in response:
-                    response_text = response['text']
-                elif 'message' in response:
-                    response_text = response['message']
-                else:
-                    response_text = str(response)
-            elif hasattr(response, 'message'):
-                response_text = response.message
-            elif hasattr(response, 'content'):
-                if isinstance(response.content, list) and len(response.content) > 0:
-                    # Handle list of content items
-                    content_item = response.content[0]
-                    if isinstance(content_item, dict) and 'text' in content_item:
-                        response_text = content_item['text']
-                    else:
-                        response_text = str(content_item)
-                else:
-                    response_text = str(response.content)
-            elif hasattr(response, 'text'):
-                response_text = response.text
-            else:
-                response_text = str(response)
+            response_text = self._extract_response_text(response)
             
             # Store interaction in memory
             if self.memory_manager and self.config.enable_conversation_logging:
@@ -743,6 +691,122 @@ You have access to the user's profile, recent conversations, and preferences.
         except Exception as e:
             logger.error(f"Error processing message: {e}")
             return f"I apologize, but I encountered an error processing your request: {str(e)}"
+    
+    async def _process_with_mcp_context(self, message: str) -> str:
+        """Process message using MCP context managers as required by Strands."""
+        # We need to gather MCP tools within context managers
+        all_mcp_tools = []
+        
+        # Collect tools from all MCP clients using context managers
+        for i, client in enumerate(self.mcp_clients):
+            server_name = self.mcp_server_names[i] if i < len(self.mcp_server_names) else f"server_{i}"
+            
+            try:
+                # This is the proper Strands pattern - using async context manager
+                async with client:
+                    tools = await client.list_tools()
+                    
+                    # Add namespace prefix to tool names to avoid conflicts
+                    for tool in tools:
+                        if hasattr(tool, 'name'):
+                            # Add server prefix to tool name for uniqueness
+                            original_name = tool.name
+                            tool.name = f"{server_name}_{original_name}"
+                            
+                            # Update description to include server source
+                            if hasattr(tool, 'description'):
+                                tool.description = f"[{server_name}] {tool.description}"
+                            
+                            logger.debug(f"Namespaced tool: {original_name} -> {tool.name}")
+                    
+                    all_mcp_tools.extend(tools)
+                    logger.info(f"✅ Discovered {len(tools)} tools from {server_name} server")
+                
+            except Exception as e:
+                logger.error(f"❌ Error discovering tools from {server_name} server: {e}")
+                # Continue with other servers instead of failing completely
+                continue
+        
+        # Create a new agent with all tools for this conversation
+        if all_mcp_tools:
+            current_tools = []
+            
+            # Add built-in tools
+            if self.config.enable_builtin_tools:
+                current_tools.extend([calculator, current_time])
+            
+            # Add memory tools  
+            if self.memory_manager:
+                current_tools.extend(self._create_memory_tools())
+            
+            # Add MCP tools
+            current_tools.extend(all_mcp_tools)
+            
+            # Create temporary agent with all tools
+            enhanced_agent = Agent(
+                model=self._create_model(),
+                tools=current_tools,
+                system_prompt=self._create_enhanced_system_prompt()
+            )
+            
+            logger.info(f"Created enhanced agent with {len(current_tools)} tools ({len(all_mcp_tools)} from MCP)")
+            
+            # Process with enhanced agent
+            return enhanced_agent(message)
+        else:
+            # Fall back to agent without MCP tools
+            logger.warning("No MCP tools available, using base agent")
+            return self.agent(message)
+    
+    def _extract_response_text(self, response) -> str:
+        """Extract text from various response formats."""
+        # Handle AgentResult objects from Strands first
+        if hasattr(response, '__class__') and 'AgentResult' in str(type(response)):
+            # AgentResult object - convert to string
+            return str(response)
+        elif isinstance(response, list):
+            # Handle list response format (common with Strands)
+            if len(response) > 0:
+                first_item = response[0]
+                if isinstance(first_item, dict) and 'text' in first_item:
+                    return first_item['text']
+                else:
+                    return str(first_item)
+            else:
+                return "No response generated"
+        elif isinstance(response, dict):
+            # Handle dictionary response format (Strands format)
+            if 'content' in response and isinstance(response['content'], list):
+                if len(response['content']) > 0:
+                    content_item = response['content'][0]
+                    if isinstance(content_item, dict) and 'text' in content_item:
+                        return content_item['text']
+                    else:
+                        return str(content_item)
+                else:
+                    return str(response)
+            elif 'text' in response:
+                return response['text']
+            elif 'message' in response:
+                return response['message']
+            else:
+                return str(response)
+        elif hasattr(response, 'message'):
+            return response.message
+        elif hasattr(response, 'content'):
+            if isinstance(response.content, list) and len(response.content) > 0:
+                # Handle list of content items
+                content_item = response.content[0]
+                if isinstance(content_item, dict) and 'text' in content_item:
+                    return content_item['text']
+                else:
+                    return str(content_item)
+            else:
+                return str(response.content)
+        elif hasattr(response, 'text'):
+            return response.text
+        else:
+            return str(response)
     
     async def _enhance_message_with_context(self, message: str, user_id: str) -> str:
         """Enhance the user message with relevant context from memory."""

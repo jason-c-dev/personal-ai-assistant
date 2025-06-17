@@ -1,0 +1,24 @@
+{
+  "session_id": "4ef10aae-06d6-4429-9590-355544c6cd8d",
+  "created_at": "2025-06-16T16:51:55.594938",
+  "last_accessed": "2025-06-16T16:51:56.509566",
+  "title": "Hello, can you search my memories for anything ...",
+  "description": "",
+  "conversation_turns": [
+    {
+      "timestamp": "2025-06-16T16:51:56.509563",
+      "user_message": "Hello, can you search my memories for anything about testing?",
+      "assistant_response": "I apologize, but I encountered an error: An error occurred (ValidationException) when calling the ConverseStream operation: The provided model identifier is invalid.",
+      "turn_number": 1,
+      "metadata": {}
+    }
+  ],
+  "context_summary": "",
+  "user_metadata": {},
+  "agent_metadata": {},
+  "total_messages": 1,
+  "session_duration_seconds": 2.514483,
+  "tags": [],
+  "bookmarked": false,
+  "auto_save": true
+}

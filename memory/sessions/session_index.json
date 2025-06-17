@@ -1,0 +1,41 @@
+{
+  "7c8401bf-b414-4f49-a9ba-c432bb666354": {
+    "session_id": "7c8401bf-b414-4f49-a9ba-c432bb666354",
+    "title": "Hello, can you search my memories for anything ...",
+    "description": "",
+    "created_at": "2025-06-16T16:50:35.398801",
+    "last_accessed": "2025-06-16T16:50:36.187347",
+    "total_turns": 1,
+    "total_messages": 1,
+    "duration_minutes": 0.0,
+    "tags": [],
+    "bookmarked": false,
+    "has_context": false
+  },
+  "4ef10aae-06d6-4429-9590-355544c6cd8d": {
+    "session_id": "4ef10aae-06d6-4429-9590-355544c6cd8d",
+    "title": "Hello, can you search my memories for anything ...",
+    "description": "",
+    "created_at": "2025-06-16T16:51:55.594938",
+    "last_accessed": "2025-06-16T16:51:56.509566",
+    "total_turns": 1,
+    "total_messages": 1,
+    "duration_minutes": 0.0,
+    "tags": [],
+    "bookmarked": false,
+    "has_context": false
+  },
+  "197694a6-472d-4c98-9eac-287cfe08b1ae": {
+    "session_id": "197694a6-472d-4c98-9eac-287cfe08b1ae",
+    "title": "Hello! Can you search my memories for anything ...",
+    "description": "",
+    "created_at": "2025-06-16T16:58:56.866591",
+    "last_accessed": "2025-06-16T16:58:57.626986",
+    "total_turns": 1,
+    "total_messages": 1,
+    "duration_minutes": 0.0,
+    "tags": [],
+    "bookmarked": false,
+    "has_context": false
+  }
+}
